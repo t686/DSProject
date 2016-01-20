@@ -3,8 +3,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
@@ -14,9 +14,10 @@ import org.apache.xmlrpc.webserver.WebServer;
 
 public class Server implements Runnable{
 	
-	public static final int port = 3333;
+	public static final int port = 1111;
 	
-	public static ArrayList<String> connectedNodes = new ArrayList<String>(); //List of active Nodes IPs
+	public static HashSet<String> connectedNodes = new HashSet<String>(); //List of active Nodes IPs
+	//Using HashSet we eliminate the probability of identical elements on a data structure level 
 
 	@Override
 	//Start the WebServer
@@ -25,7 +26,7 @@ public class Server implements Runnable{
 		
 		try{
 			connectedNodes.add(Client.nodeIPnPort);
-			Client.serverURLs.add(new URL(Client.getFullAddress(Client.nodeIPnPort)));
+			Client.serverURLs.add(new URL(Client.getFullAddress(Client.urlFormatter(Client.nodeIPnPort))));
 			
 		}catch(MalformedURLException e){
 			e.printStackTrace();
@@ -61,7 +62,7 @@ public class Server implements Runnable{
 		try {
 			if(connectedNodes.add(newNodeIP)){
 				Client.serverURLs.add(new URL(Client.getFullAddress(newNodeIP)));
-				System.out.println("[Server] New node with address: "+newNodeIP+" was connected!");
+				System.out.println("[Server] NEW node with address: "+newNodeIP+" was connected!");
 			}
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
@@ -69,16 +70,31 @@ public class Server implements Runnable{
 		
 		return connectedNodes.toArray();
 	}
-	
-	public void signOff(String nodeIP){
-		if(connectedNodes.remove(nodeIP)){
-			System.out.println("Node "+nodeIP+" is leaving the network.");
-			
-			for(int i=0;i<Client.serverURLs.size();i++){
+		
+	public boolean signOff(String nodeIP){
+		System.out.println("[Server] Node "+nodeIP+" is leaving the network.");
+		if(connectedNodes.remove(nodeIP)){//TODO: Issue 
+			for(int i=0; i<Client.serverURLs.size(); i++){
 				URL url = Client.serverURLs.get(i);
-				if(url.toString().compareTo(nodeIP) == 0)
+				if(url.toString().compareTo(Client.urlFormatter(nodeIP)) == 0){
 					Client.serverURLs.remove(i);
+				}
 			}
+			System.out.println("[Server] ConndectedNodes.size: " + connectedNodes.size() + ", ServerURLs.size: " + Client.serverURLs.size());
+			return true;
+		}
+		return false;
+	}
+	
+	public static void listOfConnections() {
+		if(connectedNodes.size() > 0){
+			System.out.println("[Server] There are " + connectedNodes.size()
+					+ " IPs:");
+			for (String str : connectedNodes) {
+				System.out.println(str);
+			}
+		}else{
+			System.out.println("The network is empty!");
 		}
 	}
 }
