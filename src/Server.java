@@ -86,6 +86,7 @@ public class Server implements Runnable{
 					Client.serverURLs.remove(i);
 				}
 			}
+			if (!host.equals("none")) startElection();
 			return true;
 		}
 		return false;
