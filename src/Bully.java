@@ -21,9 +21,10 @@ class Bully {
                     //TODO: implement
                     break;
                 case "Stop" :
-                    System.out.println(node + " is taking over the election process");
+                    System.out.println("[Bully] " + node + " is taking over the election process");
                     return false;
                 case "Lost" :
+                    System.out.println("[Bully] " + node + " is not answering therefore will be disconnected");
                     signOffDisconnectedNode(node);
                     break;
                 default :

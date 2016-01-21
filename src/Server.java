@@ -132,6 +132,7 @@ public class Server implements Runnable{
 	public boolean startElection() {
 		if(Bully.startElection(port, connectedNodes)) {
 			host = Client.nodeIPnPort;
+			System.out.println("[Server] This application (" + host + ") won the host election");
 			broadcastIamHost();
 			return true;
 		}
@@ -162,7 +163,7 @@ public class Server implements Runnable{
 	//RPC call Method from Node
 	public synchronized String rpcElectionRequest(int requester) {
 
-		System.out.println("received a election message from: " + requester);
+		System.out.println("[Server] received a election message from: " + requester);
 
 		//this should not happen
 		if (requester > port) return "Continue";
