@@ -79,7 +79,7 @@ public class Client implements Runnable{
 						xmlRpcClient.setConfig(config);
 						xmlRpcClient.execute("Node.join", params);
 					}
-					
+				startElection();
 				}catch(XmlRpcException err){
 					System.err.println(err.getMessage());
 				}

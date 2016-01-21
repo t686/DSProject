@@ -86,7 +86,7 @@ public class Server implements Runnable{
 					Client.serverURLs.remove(i);
 				}
 			}
-			if (!host.equals("none")) startElection();
+			if (host.equals(nodeIP)) startElection();
 			return true;
 		}
 		return false;
@@ -131,7 +131,10 @@ public class Server implements Runnable{
 	}
 
 	public boolean startElection() {
-		if(Bully.startElection(port, connectedNodes)) {
+		if (!(connectedNodes.size() > 1)) {
+			System.out.println("you are not connected to a network");
+		}
+		else if(Bully.startElection(port, connectedNodes)) {
 			host = Client.nodeIPnPort;
 			System.out.println("[Server] This application (" + host + ") won the host election");
 			broadcastIamHost();
