@@ -7,36 +7,24 @@ import java.util.Vector;
 
 class Bully {
 
-    private int ownPort;
-    private String nodeIPnPort;
-    private HashSet<String> connectedNodes;
 
-    public Vector<Object> params = new Vector<Object>();
-
-    public Bully(String nodeIPnPort, HashSet<String> connectedNodes) {
-        this.nodeIPnPort = nodeIPnPort;
-        this.connectedNodes = connectedNodes;
-        this.ownPort = extractPortFromIPnPort(nodeIPnPort);
-
-    }
-
-    public boolean startElection() {
+    public static boolean startElection(int ownPort, HashSet<String> connectedNodes) {
         String response;
 
         System.out.println("node " + ownPort + " starts election process!");
         for (String node : connectedNodes) {
             if(extractPortFromIPnPort(node) <= ownPort) continue;
-            response = messageNode(node);
+            response = messageNode(ownPort, node);
 
             switch (response) {
                 case "Continue" :
                     //TODO: implement
                     break;
                 case "Stop" :
-                    //TODO: implement
-                    break;
+                    System.out.println(node + " is taking over the election process");
+                    return false;
                 case "Lost" :
-                    //TODO: implement
+                    signOffDisconnectedNode(node);
                     break;
                 default :
                     System.err.println("Something went wrong!");
@@ -45,16 +33,17 @@ class Bully {
         return true;
     }
 
-    private String messageNode(String node) {
+    private static String messageNode(int ownPort, String node) {
 
+        Vector<Object> params = new Vector<>();
+        System.out.println("sending election message to: " + node);
         try {
             Client.config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(node))));
             Client.xmlRpcClient.setConfig(Client.config);
             params.removeAllElements();
             params.add(ownPort);
 
-            String result  = (String) Client.xmlRpcClient.execute("Node.requestElection", params);
-            return result;
+            return (String) Client.xmlRpcClient.execute("Node.rpcElectionRequest", params);
 
         } catch (XmlRpcException e) {
             e.printStackTrace();
@@ -65,9 +54,29 @@ class Bully {
         }
     }
 
-    private int extractPortFromIPnPort(String nodeIPnPort) {
-        int port = 0;
-        String portString = nodeIPnPort.substring(nodeIPnPort.indexOf(":"));
+    private static boolean signOffDisconnectedNode(String node) {
+        Vector<Object> params = new Vector<>();
+
+        try {
+            Client.config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(Client.nodeIPnPort))));
+
+            Client.xmlRpcClient.setConfig(Client.config);
+            params.removeAllElements();
+            params.add(node);
+
+            return (boolean) Client.xmlRpcClient.execute("Node.signOff", params);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            return false;
+        } catch (XmlRpcException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private static int extractPortFromIPnPort(String nodeIPnPort) {
+        int port;
+        String portString = nodeIPnPort.substring(nodeIPnPort.indexOf(":")+1);
         port = Integer.parseInt(portString);
 
         return port;

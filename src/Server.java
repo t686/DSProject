@@ -6,6 +6,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Vector;
 
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
@@ -17,8 +18,10 @@ public class Server implements Runnable{
 	
 	//public static final int port = findFreePort();
 	public static final int port = findFreePort(); //For easier test results analysis
+
+	public static String host = "none";
 	
-	public static HashSet<String> connectedNodes = new HashSet<String>(); //List of active Nodes IPs
+	public static HashSet<String> connectedNodes = new HashSet<>(); //List of active Nodes IPs
 	//Using HashSet we eliminate the probability of identical elements on a data structure level
 
 	@Override
@@ -124,5 +127,54 @@ public class Server implements Runnable{
 			}
 		}
 		throw new IllegalStateException("Could not find a free TCP/IP port to start HTTP Server on");
+	}
+
+	public boolean startElection() {
+		if(Bully.startElection(port, connectedNodes)) {
+			host = Client.nodeIPnPort;
+			broadcastIamHost();
+			return true;
+		}
+		return true;
+
+	}
+
+	private void broadcastIamHost() {
+		Vector<Object> params = new Vector<>();
+
+		for(String node : connectedNodes) {
+			try {
+				Client.config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(node))));
+				Client.xmlRpcClient.setConfig(Client.config);
+				params.removeAllElements();
+				params.add(host);
+
+				boolean response = (boolean) Client.xmlRpcClient.execute("Node.hostBroadcast", params);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			} catch (XmlRpcException e) {
+				System.out.println("XmlRpcException");
+				e.printStackTrace();
+			}
+		}
+	}
+
+	//RPC call Method from Node
+	public synchronized String rpcElectionRequest(int requester) {
+
+		System.out.println("received a election message from: " + requester);
+
+		//this should not happen
+		if (requester > port) return "Continue";
+
+		//this servers port has a higher value then the requester so it takes over the election process
+		startElection();
+		return "Stop";
+	}
+
+	//RPC call Method from other Server
+	public boolean hostBroadcast(String newHost) {
+		host = newHost;
+		return true;
 	}
 }

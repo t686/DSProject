@@ -19,9 +19,9 @@ public class Client implements Runnable{
 	
 	public static String nodeIp = null;
 	public static String nodeIPnPort = null;
-	public Vector<Object> params = new Vector<Object>();
+	public Vector<Object> params = new Vector<>();
 	
-	public static Vector<URL> serverURLs = new Vector<URL>(); //List of URLs of other machines
+	public static Vector<URL> serverURLs = new Vector<>(); //List of URLs of other machines
 	
 	public Client(){
 		init();
@@ -117,6 +117,18 @@ public class Client implements Runnable{
 			System.out.println("[Client] Signed off!");
 		}else{
 			System.err.println("[Client] You are not connected to a network");
+		}
+	}
+
+	public void startElection() throws XmlRpcException, MalformedURLException {
+		if(!(serverURLs.size() > 1)) {
+			System.out.println("you are not connected to a network");
+		}
+		else {
+			config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(nodeIPnPort))));
+			xmlRpcClient.setConfig(Client.config);
+			params.removeAllElements();
+			Client.xmlRpcClient.execute("Node.startElection", params);
 		}
 	}
 	
