@@ -76,7 +76,7 @@ public class Server implements Runnable{
 	public boolean signOff(String nodeIP){
 		if(connectedNodes.remove(nodeIP)){
 			System.out.println("[Server] Node "+nodeIP+" is leaving the network.");
-			
+
 			for(int i=0; i<Client.serverURLs.size(); i++){
 				URL url = Client.serverURLs.get(i);
 				if(url.toString().compareTo(Client.urlFormatter(nodeIP)) == 0){
@@ -86,7 +86,7 @@ public class Server implements Runnable{
 			return true;
 		}
 		return false;
-		
+
 	}
 	
 	public static void listOfConnections() {
@@ -100,7 +100,7 @@ public class Server implements Runnable{
 			System.out.println("The network is empty!");
 		}
 	}
-	
+
 	//Function by github user @vorburger
 	private static int findFreePort() {
 		ServerSocket socket = null;
@@ -114,7 +114,7 @@ public class Server implements Runnable{
 				// Ignore IOException on close()
 			}
 			return port;
-		} catch (IOException e) { 
+		} catch (IOException e) {
 		} finally {
 			if (socket != null) {
 				try {
