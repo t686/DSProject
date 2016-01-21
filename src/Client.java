@@ -56,7 +56,7 @@ public class Client implements Runnable{
 		}else if(newNodeIP.equals(nodeIPnPort)){
 			System.err.println("You can't connect to yourself!");
 		}else{
-			//System.err.println("[CLIENT] NEW NODE JOINING: "+newNodeIP);
+			System.err.println("[CLIENT] NEW NODE JOINING: "+newNodeIP);
 			try{
 				config.setServerURL(new URL(getFullAddress(urlFormatter(newNodeIP))));
 				xmlRpcClient.setConfig(config);
@@ -92,30 +92,41 @@ public class Client implements Runnable{
 	}
 	
 	public void signOff() throws XmlRpcException, MalformedURLException{
-		Vector<Object> params = new Vector<Object>();
-		params.add(nodeIPnPort);
-		
+		//Notify other nodes about leaving the network
 		if(serverURLs.size() > 1){
 			URL[] a = new URL[serverURLs.size()];
 			a = serverURLs.toArray(a);
+			
 			for (URL url : a) {
-				config.setServerURL(url);
-				xmlRpcClient.setConfig(config);
-				if (!(boolean) xmlRpcClient.execute("Node.signOff", params)) {
-					System.out.println("[Client] Failed to signOff from "+ url.getAuthority());
+				if(url.toString().compareTo(getFullAddress(nodeIPnPort)) != 0){
+					config.setServerURL(url);
+					xmlRpcClient.setConfig(config);
+					params.removeAllElements();
+					params.add(nodeIPnPort);
+					if (!(boolean) xmlRpcClient.execute("Node.signOff", params)) {
+						System.out.println("[Client] Failed to signOff from "+ url.getAuthority());
+					}
 				}
 			}
+			//Probably optimize those straight forward commands 
 			serverURLs.clear();
 			serverURLs.add(new URL(getFullAddress(urlFormatter(nodeIPnPort))));
+			Server.connectedNodes.clear();
+			Server.connectedNodes.add(nodeIPnPort);
+			//TODO cleanup
 			System.out.println("[Client] Signed off!");
 		}else{
 			System.err.println("[Client] You are not connected to a network");
 		}
 	}
 	
-	public void listOfNodes() {
+	public static void showAllLists(){
 		Server.listOfConnections();
-		System.out.println("____");
+		System.out.println("______");
+		listOfNodes();
+	}
+	
+	public static void listOfNodes() {
 		if(serverURLs.size() > 0){
 			System.out.println("[Client] There are " + serverURLs.size()
 					+ " network members:");

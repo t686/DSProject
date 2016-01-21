@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.ServerSocket;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -14,10 +15,11 @@ import org.apache.xmlrpc.webserver.WebServer;
 
 public class Server implements Runnable{
 	
-	public static final int port = 1111;
+	//public static final int port = findFreePort();
+	public static final int port = findFreePort(); //For easier test results analysis
 	
 	public static HashSet<String> connectedNodes = new HashSet<String>(); //List of active Nodes IPs
-	//Using HashSet we eliminate the probability of identical elements on a data structure level 
+	//Using HashSet we eliminate the probability of identical elements on a data structure level
 
 	@Override
 	//Start the WebServer
@@ -72,18 +74,19 @@ public class Server implements Runnable{
 	}
 		
 	public boolean signOff(String nodeIP){
-		System.out.println("[Server] Node "+nodeIP+" is leaving the network.");
-		if(connectedNodes.remove(nodeIP)){//TODO: Issue 
+		if(connectedNodes.remove(nodeIP)){
+			System.out.println("[Server] Node "+nodeIP+" is leaving the network.");
+			
 			for(int i=0; i<Client.serverURLs.size(); i++){
 				URL url = Client.serverURLs.get(i);
 				if(url.toString().compareTo(Client.urlFormatter(nodeIP)) == 0){
 					Client.serverURLs.remove(i);
 				}
 			}
-			System.out.println("[Server] ConndectedNodes.size: " + connectedNodes.size() + ", ServerURLs.size: " + Client.serverURLs.size());
 			return true;
 		}
 		return false;
+		
 	}
 	
 	public static void listOfConnections() {
@@ -96,5 +99,30 @@ public class Server implements Runnable{
 		}else{
 			System.out.println("The network is empty!");
 		}
+	}
+	
+	//Function by github user @vorburger
+	private static int findFreePort() {
+		ServerSocket socket = null;
+		try {
+			socket = new ServerSocket(0);
+			socket.setReuseAddress(true);
+			int port = socket.getLocalPort();
+			try {
+				socket.close();
+			} catch (IOException e) {
+				// Ignore IOException on close()
+			}
+			return port;
+		} catch (IOException e) { 
+		} finally {
+			if (socket != null) {
+				try {
+					socket.close();
+				} catch (IOException e) {
+				}
+			}
+		}
+		throw new IllegalStateException("Could not find a free TCP/IP port to start HTTP Server on");
 	}
 }

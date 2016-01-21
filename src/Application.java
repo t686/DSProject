@@ -10,8 +10,6 @@ public class Application {
 		
 		System.out.println("Oi, mate!");
 		
-		//Before running the Application twice be sure to change the Server.port value
-		
 		//init the Server and Client
 		Server server = new Server();
 		Client client = new Client();

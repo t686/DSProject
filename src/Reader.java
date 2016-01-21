@@ -33,7 +33,6 @@ public class Reader implements Runnable{
 	private void selectedOption(String option) throws IOException, XmlRpcException{
 			switch (inputText) {
 			case "join":
-				//System.out.println("Operation \"Join\" initiated.");
 				System.out.println("Enter IP:Port");
 				String newNodeIP = buffReader.readLine().trim();
 				client.join(newNodeIP);
@@ -47,11 +46,11 @@ public class Reader implements Runnable{
 				//client.start();
 				break;
 			case "list":
-				client.listOfNodes();
+				Client.showAllLists();
 				break;
 			case "exit":
 				System.out.println("Quiting the program...");
-				//client.signOff();
+				client.signOff();
 				System.exit(0);
 				break;
 			default:
