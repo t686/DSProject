@@ -5,7 +5,7 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Vector;
 
-class Bully {
+public class Bully {
 
 
     public static boolean startElection(int ownPort, HashSet<String> connectedNodes) {
