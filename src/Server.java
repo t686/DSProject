@@ -23,6 +23,7 @@ public class Server implements Runnable{
 	
 	public static HashSet<String> connectedNodes = new HashSet<>(); //List of active Nodes IPs
 	//Using HashSet we eliminate the probability of identical elements on a data structure level
+	private String hostString = "";
 
 	@Override
 	//Start the WebServer
@@ -180,6 +181,41 @@ public class Server implements Runnable{
 	//RPC call Method from other Server
 	public boolean hostBroadcast(String newHost) {
 		host = newHost;
+		return true;
+	}
+
+
+	//Block for Methods concerning the Concatenation Process
+
+	/**
+	 * Method called by concatBroadcaster to initiate the Concatenation process
+     */
+	public boolean startConcatProcess() {
+		return true;
+	}
+	/**
+	 * Method to let the requester know that this node is alive
+	 * @return always true to show that its active
+	 */
+	public boolean rpcLifeSign() {
+		return true;
+	}
+	public String rpcRequestString() {
+		return this.hostString;
+	}
+
+	public boolean rpcOverrideString(String newString) {
+		this.hostString = newString;
+		return true;
+	}
+
+	/**
+	 * This method is called by the host node after the concat process time is over
+	 * to evaluate if every concatenation went right
+	 * @return true if all strings were appended correctly
+     */
+	private boolean checkConcatResult() {
+		//TODO: inplement the broadcast check to every node
 		return true;
 	}
 }

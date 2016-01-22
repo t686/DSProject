@@ -161,4 +161,14 @@ public class Client implements Runnable{
 	public static String urlFormatter(String ip) {
 		return "http://"+ip+"/xmlrpc";
 	}
+
+	/**
+	 * inner class just used by the client to tell every node to start the concatenation process
+	 */
+	public class ConcatBroadcaster extends Thread{
+
+		public void run() {
+
+		}
+	}
 }
