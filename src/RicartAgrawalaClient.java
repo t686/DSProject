@@ -16,4 +16,9 @@ public class RicartAgrawalaClient extends Client implements Runnable{
 		//stopOperations();
 	}
 
+	@Override
+	public void startConcatProcess() {
+
+	}
+
 }

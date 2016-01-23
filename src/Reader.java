@@ -4,7 +4,7 @@ import java.io.InputStreamReader;
 
 import org.apache.xmlrpc.XmlRpcException;
 
-public class Reader implements Runnable{
+public class Reader extends Thread{
 	
 	public Client client;
 	
@@ -43,7 +43,7 @@ public class Reader implements Runnable{
 					break;
 				case "start":
 					System.out.println("Please, enter a *word* to start the concatenation process: ");
-					client.startOperations(buffReader.readLine());
+					client.startConcatProcess();
 					break;
 				case "bully":
 					System.out.println("Host election initiated.");

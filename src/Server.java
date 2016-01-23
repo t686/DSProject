@@ -96,20 +96,20 @@ public class Server implements Runnable{
 
 	}
 
-	public boolean startOperations(String word){
-		System.out.println("[Server] Initial word: " + word+". Starting RA Client...");
-		//new Thread(new RicartAgrawalaClient()).start();
-		return true;
-	}
+//	public boolean startOperations(String word){
+//		System.out.println("[Server] Initial word: " + word+". Starting RA Client...");
+//		//new Thread(new RicartAgrawalaClient()).start();
+//		return true;
+//	}
 	
 	//Increment the stopped counter until == connectedNodes hash size and print the final string result 
-	public boolean stopOperations(){
-		stoppedNodes++;
-		if(connectedNodes.size() == stoppedNodes){
-			System.out.println("[Server] All operations successfully stoped. Final result: " + hostString);
-		}
-		return true;
-	}
+//	public boolean stopOperations(){
+//		stoppedNodes++;
+//		if(connectedNodes.size() == stoppedNodes){
+//			System.out.println("[Server] All operations successfully stoped. Final result: " + hostString);
+//		}
+//		return true;
+//	}
 
 	public boolean startElection() {
 		if (!(connectedNodes.size() > 1)) {

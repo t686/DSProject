@@ -136,10 +136,9 @@ public class Client implements Runnable{
 	}
 	
 	//function initiating the Mutual Exclusion "fight" and concatenation processes
-	public void startOperations(String word){
+	public void startConcatProcess(){
 		if(serverURLs.size() > 1){
 			params.removeAllElements();
-			params.addElement(word);
 			runOverRpc("Node.startOperations", params);
 		} else {
 			System.err.println("[Client] You are not connected to a network");
