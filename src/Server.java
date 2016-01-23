@@ -17,11 +17,13 @@ import org.apache.xmlrpc.webserver.WebServer;
 public class Server implements Runnable{
 	
 	//public static final int port = findFreePort();
-	public static final int port = findFreePort(); //For easier test results analysis
+	public static final int port = findFreePort(); 					//For easier test results analysis
 
 	public static String host = "none";
 	
 	public static HashSet<String> connectedNodes = new HashSet<>(); //List of active Nodes IPs
+	public static int stoppedNodes = 0; 							//Counter of nodes successfully stopped
+	
 	//Using HashSet we eliminate the probability of identical elements on a data structure level
 	private String hostString = "";
 
@@ -93,42 +95,20 @@ public class Server implements Runnable{
 		return false;
 
 	}
-	
-	public static void listOfConnections() {
-		if(connectedNodes.size() > 0){
-			System.out.println("[Server] There are " + connectedNodes.size()
-					+ " IPs:");
-			for (String str : connectedNodes) {
-				System.out.println(str);
-			}
-		}else{
-			System.out.println("The network is empty!");
-		}
-	}
 
-	//Function by github user @vorburger
-	private static int findFreePort() {
-		ServerSocket socket = null;
-		try {
-			socket = new ServerSocket(0);
-			socket.setReuseAddress(true);
-			int port = socket.getLocalPort();
-			try {
-				socket.close();
-			} catch (IOException e) {
-				// Ignore IOException on close()
-			}
-			return port;
-		} catch (IOException e) {
-		} finally {
-			if (socket != null) {
-				try {
-					socket.close();
-				} catch (IOException e) {
-				}
-			}
+	public boolean startOperations(String word){
+		System.out.println("[Server] Initial word: " + word+". Starting RA Client...");
+		//new Thread(new RicartAgrawalaClient()).start();
+		return true;
+	}
+	
+	//Increment the stopped counter until == connectedNodes hash size and print the final string result 
+	public boolean stopOperations(){
+		stoppedNodes++;
+		if(connectedNodes.size() == stoppedNodes){
+			System.out.println("[Server] All operations successfully stoped. Final result: " + hostString);
 		}
-		throw new IllegalStateException("Could not find a free TCP/IP port to start HTTP Server on");
+		return true;
 	}
 
 	public boolean startElection() {
@@ -215,7 +195,50 @@ public class Server implements Runnable{
 	 * @return true if all strings were appended correctly
      */
 	private boolean checkConcatResult() {
-		//TODO: inplement the broadcast check to every node
+		//TODO: implement the broadcast check to every node
 		return true;
+	}
+	
+
+	/*
+	 * UTILITY METHODS
+	 */
+	public static void listOfConnections() {
+		System.out.println("[Server] MASTER node is: "+host);
+		if(connectedNodes.size() > 0){
+			System.out.println("[Server] There are " + connectedNodes.size()
+					+ " IPs:");
+			for (String str : connectedNodes) {
+				System.out.println(str);
+			}
+		}else{
+			System.out.println("The network is empty!");
+		}
+		
+	}
+
+	//Function by github user @vorburger
+	private static int findFreePort() {
+		ServerSocket socket = null;
+		try {
+			socket = new ServerSocket(0);
+			socket.setReuseAddress(true);
+			int port = socket.getLocalPort();
+			try {
+				socket.close();
+			} catch (IOException e) {
+				// Ignore IOException on close()
+			}
+			return port;
+		} catch (IOException e) {
+		} finally {
+			if (socket != null) {
+				try {
+					socket.close();
+				} catch (IOException e) {
+				}
+			}
+		}
+		throw new IllegalStateException("Could not find a free TCP/IP port to start HTTP Server on");
 	}
 }

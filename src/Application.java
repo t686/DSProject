@@ -18,8 +18,8 @@ public class Application {
 		Thread clientThread = new Thread();
 		Thread serverThread = new Thread();
 		
-		clientThread.start();
-		serverThread.start();
+		//clientThread.start();
+		//serverThread.start();
 		server.run();
 		
 		Thread readerThread = new Thread(new Reader(client));

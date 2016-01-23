@@ -42,8 +42,8 @@ public class Reader implements Runnable{
 					client.signOff();
 					break;
 				case "start":
-					System.out.println("Distributed text appending operation initiated.");
-					//client.start();
+					System.out.println("Please, enter a *word* to start the concatenation process: ");
+					client.startOperations(buffReader.readLine());
 					break;
 				case "bully":
 					System.out.println("Host election initiated.");

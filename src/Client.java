@@ -12,19 +12,20 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 
 public class Client implements Runnable{
 	
-	public final long exec_time = 20000;
+	public final long EXECUTION_TIME = 20000;
 	
 	public static XmlRpcClient xmlRpcClient;
 	public static XmlRpcClientConfigImpl config;
 	
 	public static String nodeIp = null;
 	public static String nodeIPnPort = null;
-	public Vector<Object> params = new Vector<>();
 	
+	public Vector<Object> params = new Vector<>();
 	public static Vector<URL> serverURLs = new Vector<>(); //List of URLs of other machines
 	
 	public Client(){
 		init();
+		//TODO remove init call otherwise the RAClient would use it for the seconds time.
 	}
 
 	public void init(){
@@ -56,13 +57,14 @@ public class Client implements Runnable{
 		}else if(newNodeIP.equals(nodeIPnPort)){
 			System.err.println("You can't connect to yourself!");
 		}else{
-			System.err.println("[CLIENT] NEW NODE JOINING: "+newNodeIP);
 			try{
+				
 				config.setServerURL(new URL(getFullAddress(urlFormatter(newNodeIP))));
 				xmlRpcClient.setConfig(config);
 				params.removeAllElements();
 				params.add(nodeIPnPort);
 				try{
+					System.err.println("[Client] NEW NODE JOINING: "+newNodeIP);
 					
 					Object[] result  = (Object[]) xmlRpcClient.execute("Node.join", params);
 					for (Object obj : result){
@@ -94,10 +96,10 @@ public class Client implements Runnable{
 	public void signOff() throws XmlRpcException, MalformedURLException{
 		//Notify other nodes about leaving the network
 		if(serverURLs.size() > 1){
-			URL[] a = new URL[serverURLs.size()];
-			a = serverURLs.toArray(a);
+			//URL[] urlArr = new URL[serverURLs.size()];
+			//urlArr = serverURLs.toArray(urlArr);
 			
-			for (URL url : a) {
+			for (URL url : serverURLs) {
 				if(url.toString().compareTo(getFullAddress(nodeIPnPort)) != 0){
 					config.setServerURL(url);
 					xmlRpcClient.setConfig(config);
@@ -113,6 +115,7 @@ public class Client implements Runnable{
 			serverURLs.add(new URL(getFullAddress(urlFormatter(nodeIPnPort))));
 			Server.connectedNodes.clear();
 			Server.connectedNodes.add(nodeIPnPort);
+			Server.host = "none";
 			//TODO cleanup
 			System.out.println("[Client] Signed off!");
 		}else{
@@ -122,16 +125,53 @@ public class Client implements Runnable{
 
 	public void startElection() throws XmlRpcException, MalformedURLException {
 		if(!(serverURLs.size() > 1)) {
-			System.out.println("you are not connected to a network");
+			System.err.println("[Client] You are not connected to a network");
 		}
 		else {
-			config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(nodeIPnPort))));
-			xmlRpcClient.setConfig(Client.config);
+			config.setServerURL(new URL(getFullAddress(urlFormatter(nodeIPnPort))));
+			xmlRpcClient.setConfig(config);
 			params.removeAllElements();
-			Client.xmlRpcClient.execute("Node.startElection", params);
+			xmlRpcClient.execute("Node.startElection", params);
 		}
 	}
 	
+	//function initiating the Mutual Exclusion "fight" and concatenation processes
+	public void startOperations(String word){
+		if(serverURLs.size() > 1){
+			params.removeAllElements();
+			params.addElement(word);
+			runOverRpc("Node.startOperations", params);
+		} else {
+			System.err.println("[Client] You are not connected to a network");
+		}
+	}
+	
+	//function called after the EXECUTION_TIME <= 0 from the RA Client class
+	public void stopOperations(){
+		params.removeAllElements();
+		runOverRpc("Node.stopOperations", params);
+	}
+	
+	/*
+	 * Synchronized function that triggers start or stop functions on all nodes simultaneously
+	 */
+	synchronized public void runOverRpc(String functionName, Vector<Object> params){
+
+		for (URL url : serverURLs){
+			config.setServerURL(url);
+			xmlRpcClient.setConfig(config);
+			try {
+				System.err.println("[Client] Running function: "+functionName+" over RPC.");
+				xmlRpcClient.execute(functionName, params);
+			} catch (XmlRpcException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	/*
+	 * UTILITY METHODS
+	 */
 	public static void showAllLists(){
 		Server.listOfConnections();
 		System.out.println("______");
@@ -161,7 +201,7 @@ public class Client implements Runnable{
 	public static String urlFormatter(String ip) {
 		return "http://"+ip+"/xmlrpc";
 	}
-
+	
 	/**
 	 * inner class just used by the client to tell every node to start the concatenation process
 	 */

@@ -14,7 +14,7 @@ public class Clock {
 		return currentClock;
 	}
 	
-	public void increaseClockVal(){
+	public void clockTick(){
 		currentClock++;
 	}
 	
