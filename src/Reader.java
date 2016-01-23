@@ -42,7 +42,7 @@ public class Reader extends Thread{
 					client.signOff();
 					break;
 				case "start":
-					System.out.println("Please, enter a *word* to start the concatenation process: ");
+					System.out.println("concatenation process initiated.");
 					client.startConcatProcess();
 					break;
 				case "bully":

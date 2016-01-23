@@ -137,11 +137,13 @@ public class Client implements Runnable{
 	
 	//function initiating the Mutual Exclusion "fight" and concatenation processes
 	public void startConcatProcess(){
-		if(serverURLs.size() > 1){
-			params.removeAllElements();
-			runOverRpc("Node.startOperations", params);
-		} else {
+		if(!(serverURLs.size() > 1)){
 			System.err.println("[Client] You are not connected to a network");
+			return;
+		}
+		for (URL serverURL : serverURLs) {
+			ConcatBroadcaster broadcaster = new ConcatBroadcaster(serverURL);
+			broadcaster.run();
 		}
 	}
 	
@@ -206,8 +208,21 @@ public class Client implements Runnable{
 	 */
 	public class ConcatBroadcaster extends Thread{
 
-		public void run() {
+		private URL serverURL;
+		Vector<Object> params = new Vector<>();
 
+		public ConcatBroadcaster(URL serverURL) {
+			this.serverURL = serverURL;
+		}
+
+		public void run() {
+			params.removeAllElements();
+			try {
+				Client.xmlRpcClient.execute("Node.startConcatProcess", params);
+			} catch (XmlRpcException e) {
+				System.err.println("[Client] Starting concat process for node " + serverURL + " was not successful");
+				e.printStackTrace();
+			}
 		}
 	}
 }

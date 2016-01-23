@@ -50,27 +50,43 @@ public class WordConcatenation {
 
     /**
      * Method to check if all strings which were added in the process are part of the result string
-     * @param hostString
      * @return
      */
-    public boolean checkAddedWords(String hostString) {
+    public boolean checkAddedWords() throws XmlRpcException {
+        Vector<Object> params = new Vector<>();
+        params.removeAllElements();
+        String hostString = (String) Client.xmlRpcClient.execute("Node.rpcRequestString", params);
+
         for (String addedWord : addedStrings) {
             if(hostString.contains(addedWord)) continue;
 
-            System.out.println("The host strong does not contain " + addedWord);
+            System.out.println("[WordConcat] The host strong does not contain " + addedWord);
             return false;
         }
+        System.out.println("[WordConcat] concatenation complete");
         return true;
     }
 
     /**
      *  Method to clear the list of added strings for the next process
      */
-    public void clearList() {
+    private void clearList() {
         addedStrings.clear();
     }
+
+    /**
+     * Method returns all Strings which where added by the current instance.
+     * Probably not needed
+     * @return all strings which where added by current instance
+     */
     public ArrayList<String> getAddedStrings() {
         return addedStrings;
+    }
+
+    private String getRndString() {
+        String rndString = "";
+        //TODO: get the String from file
+        return rndString;
     }
 
 }

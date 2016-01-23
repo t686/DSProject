@@ -171,6 +171,7 @@ public class Server implements Runnable{
 	 * Method called by concatBroadcaster to initiate the Concatenation process
      */
 	public boolean startConcatProcess() {
+
 		return true;
 	}
 	/**
