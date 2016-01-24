@@ -10,7 +10,7 @@ import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 
 
-public class Client implements Runnable{
+public class Client {
 	public enum State {
 		FREE, REQUESTED, USING
 	};
@@ -43,14 +43,7 @@ public class Client implements Runnable{
 		
 		System.out.println("Your current IP address is: " + nodeIp +":"+Server.port);
 	}
-	
-	@Override
-	public void run() {
-		System.out.println("Client running");
-		//long startTime = 0;
-		
-		//Do we even need this function?
-	}
+
 	
 	public void join(String newNodeIP){
 		

@@ -61,7 +61,7 @@ public class Server{
 		} catch(IOException e){
 			e.printStackTrace();
 		}
-		
+		System.out.println("Server finished!");
 	}
 	
 	public Object[] join(String newNodeIP){
@@ -169,20 +169,37 @@ public class Server{
 	 * Method called by concatBroadcaster to initiate the Concatenation process
      */
 	public boolean startConcatProcess() {
+		if(Client.nodeIPnPort.equals(host)){
+			return false;
+		}
 
 		return true;
 	}
 	/**
 	 * Method to let the requester know that this node is alive
+	 * Only called via RPC
 	 * @return always true to show that its active
 	 */
 	public boolean rpcLifeSign() {
+		//TODO catch every possible scenario
 		return true;
 	}
+
+	/**
+	 * Method to past the current String for the concat prozess to the requester
+	 * Only called via RPC
+	 * @return current host string
+     */
 	public String rpcRequestString() {
 		return this.hostString;
 	}
 
+	/**
+	 * Method which pasts the new created string from requester to the host
+	 * Only called via RPC
+	 * @param newString freshly created string by requester node
+	 * @return always true to indicate it went correctly
+     */
 	public boolean rpcOverrideString(String newString) {
 		this.hostString = newString;
 		return true;

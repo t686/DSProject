@@ -14,7 +14,7 @@ public class Application {
 				System.out.println("Ricart Agrawala algorithm selected");
 				RicartAgrawalaServer raServer = new RicartAgrawalaServer();
 				RicartAgrawalaClient raClient = new RicartAgrawalaClient();
-				
+
 				Reader RAreader = new Reader(raClient);
 				RAreader.start();
 
