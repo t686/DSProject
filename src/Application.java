@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class Application {
 
-	public static void main(String[] args) throws IOException, FileNotFoundException {
+	public static void main(String[] args) throws IOException {
 		//RA CME
 		System.out.println("Oi, mate!");
 		switch (args[0] ) {
