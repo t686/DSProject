@@ -1,3 +1,11 @@
+import org.apache.xmlrpc.XmlRpcException;
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.apache.xmlrpc.server.PropertyHandlerMapping;
+import org.apache.xmlrpc.server.XmlRpcServer;
+import org.apache.xmlrpc.server.XmlRpcServerConfigImpl;
+import org.apache.xmlrpc.webserver.WebServer;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -5,21 +13,13 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Vector;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Stream;
-
-import org.apache.xmlrpc.XmlRpcException;
-import org.apache.xmlrpc.server.PropertyHandlerMapping;
-import org.apache.xmlrpc.server.XmlRpcServer;
-import org.apache.xmlrpc.server.XmlRpcServerConfigImpl;
-import org.apache.xmlrpc.webserver.WebServer;
 
 public class Server{
 	
@@ -27,11 +27,24 @@ public class Server{
 
 	public static String host = "none";
 	private HashSet<String> rndWordSet = new HashSet<>();
-	private String [] rndWordArray = {"the","of","and","to",};
 
 	public static HashSet<String> connectedNodes = new HashSet<>(); //List of active Nodes IPs
 	public static int stoppedNodes = 0; 							//Counter of nodes successfully stopped
-	
+
+	//!!! FIELDS FOR CONCATENATION PROCESS !!!
+
+	private WordConcatenation concatObject = new WordConcatenation();
+	private LinkedList<String> requestQueue = new LinkedList<>();
+	private boolean critSectionBusy = false;
+	private boolean isRunning = false;
+	private long startTime;
+	private int stoppedRequester = 0;
+
+	//!!! CONCAT BLOCK END !!!
+
+	private XmlRpcConnector xmlRpcConnector = new XmlRpcConnector();
+
+
 	//Using HashSet we eliminate the probability of identical elements on a data structure level
 	private String hostString = "";
 
@@ -71,7 +84,7 @@ public class Server{
 			e.printStackTrace();
 		}
 		if(!loadFile()) System.out.println("File not found!");
-		else System.out.println("File loaded successfully!");
+		else concatObject.setWordSet(rndWordSet);
 	}
 	
 	public Object[] join(String newNodeIP){
@@ -138,12 +151,11 @@ public class Server{
 
 		for(String node : connectedNodes) {
 			try {
-				Client.config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(node))));
-				Client.xmlRpcClient.setConfig(Client.config);
+				this.xmlRpcConnector.setURL(new URL(Client.getFullAddress(Client.urlFormatter(node))));
 				params.removeAllElements();
 				params.add(host);
 
-				boolean response = (boolean) Client.xmlRpcClient.execute("Node.hostBroadcast", params);
+				boolean response = xmlRpcConnector.requestBool("Node.hostBroadcast", params);
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			} catch (XmlRpcException e) {
@@ -183,11 +195,10 @@ public class Server{
 			return false;
 		}
 		boolean keepGoing = true;
-		WordConcatenation concatObject = new WordConcatenation();
+		concatObject.clearList();
 
 		try {
-			Client.config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(host))));
-			Client.xmlRpcClient.setConfig(Client.config);
+			this.xmlRpcConnector.setURL(new URL(Client.getFullAddress(Client.urlFormatter(host))));
 
 		} catch (MalformedURLException e) {
 			System.err.println("MalformedURLException!");
@@ -208,24 +219,26 @@ public class Server{
 		} catch (XmlRpcException e) {
 			e.printStackTrace();
 		}
-		concatObject.clearList();
 		return true;
 	}
 
 	private boolean concatLoop(WordConcatenation concatObject) {
 		Vector<Object> params = new Vector<>();
 		params.removeAllElements();
+		params.add(Client.nodeIPnPort);
 		String response = "";
 
 		while (true) {
 			try {
-				response = (String) Client.xmlRpcClient.execute("Node.rpcLifeSign", params);
+				response = this.xmlRpcConnector.requestString("Node.rpcLifeSign", params);
 			} catch (XmlRpcException e) {
+				System.err.println("rpcLifeSign call failed");
 				e.printStackTrace();
+				return false;
 			}
 			switch (response) {
 				case "goOn":
-					concatObject.concatString("DUMMY");
+					concatObject.concatString( );
 					return true;
 				case "wait":
 					try {
@@ -245,9 +258,28 @@ public class Server{
 	 * Only called via RPC
 	 * @return always true to show that its active
 	 */
-	public boolean rpcLifeSign() {
+	public String rpcLifeSign(String requester) {
+
+		if (!isRunning) {
+			startTimer();
+		}
+		if (checkElapsedTime()) {
+			stoppedRequester++;
+			if (stoppedRequester == connectedNodes.size()-1) broadCastCheckConcat();
+			return "stop";
+		}
+		if (critSectionBusy) {
+			requestQueue.offer(requester);
+			return "wait";
+		}
+		else {
+			if(requestQueue.isEmpty() || requestQueue.peek().equals(requester)) {
+				requestQueue.poll();
+				return "goOn";
+			}
+			return "wait";
+		}
 		//TODO catch every possible scenario
-		return true;
 	}
 
 	/**
@@ -272,12 +304,16 @@ public class Server{
 
 	/**
 	 * This method is called by the host node after the concat process time is over
-	 * to evaluate if every concatenation went right
+	 * Only called cia RPC
 	 * @return true if all strings were appended correctly
      */
 	private boolean checkConcatResult() {
-		//TODO: implement the broadcast check to every node
-		return true;
+		try {
+			return concatObject.checkAddedWords();
+		} catch (XmlRpcException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 	
 
@@ -335,5 +371,71 @@ public class Server{
 			return false;
 		}
 		return true;
+	}
+
+	private void startTimer() {
+		this.startTime = System.nanoTime();
+	}
+	private boolean checkElapsedTime() {
+		double elapsedTime = (System.nanoTime() - this.startTime) / 1000000000.0;
+		return (elapsedTime > 20);
+
+	}
+	private void lockCritSection() {
+		this.critSectionBusy = true;
+	}
+	private void unlockCritSection() {
+		this.critSectionBusy = false;
+	}
+
+	private void broadCastCheckConcat() {
+
+	}
+
+	private class CheckConcatBroadcaster extends Thread {
+		private XmlRpcClient xmlRpcClient;
+		private XmlRpcClientConfigImpl config;
+
+		public void CheckConcatBroadcaster() {
+			this.config = new XmlRpcClientConfigImpl();
+			this.xmlRpcClient = new XmlRpcClient();
+		}
+
+		public void run() {
+			Vector<String> params = new Vector<>();
+			params.removeAllElements();
+			for (URL serverURL : Client.serverURLs) {
+				if (serverURL.toString().contains(host)) continue;
+				this.config.setServerURL(serverURL);
+				this.xmlRpcClient.setConfig(this.config);
+				try {
+					boolean response = (boolean) this.xmlRpcClient.execute("Node.checkConcatResult", params);
+					if (response) System.out.println("[Server] Concatenation from node " + serverURL + " succeeded");
+					else System.err.println("[Server] Concatenation from node " + serverURL + " failed");
+				} catch (XmlRpcException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	private class XmlRpcConnector {
+
+		private XmlRpcClient xmlRpcClient = new XmlRpcClient();
+		private XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+
+		public String requestString(String methodName, Vector params) throws XmlRpcException {
+			return (String) xmlRpcClient.execute(methodName, params);
+		}
+
+		public boolean requestBool(String methodName, Vector params) throws XmlRpcException {
+			return (boolean) xmlRpcClient.execute(methodName, params);
+		}
+
+		public void setURL(URL url) {
+			this.config.setServerURL(url);
+			this.xmlRpcClient.setConfig(this.config);
+		}
+
 	}
 }

@@ -1,8 +1,11 @@
 import org.apache.xmlrpc.XmlRpcException;
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Vector;
 
 /*
@@ -13,29 +16,39 @@ import java.util.Vector;
  */
 public class WordConcatenation {
 
+    private HashSet<String> rndWordSet = new HashSet<>();
     private ArrayList<String> addedStrings;
+
+    private XmlRpcClient xmlRpcClient;
+    private XmlRpcClientConfigImpl config;
+
+    public WordConcatenation() {
+        this.addedStrings = new ArrayList<>();
+        this.config = new XmlRpcClientConfigImpl();
+        this.xmlRpcClient = new XmlRpcClient();
+    }
 
     /**
      * Method to request the current host string and add the parameter rndString to it
-     * @param rndString
      * @return true if no errors occurred
      */
-    public boolean concatString(String rndString) {
+    public boolean concatString() {
         Vector<Object> params = new Vector<>();
+        String rndString = getRndString();
 
         try {
-            Client.config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(Server.host))));
-            Client.xmlRpcClient.setConfig(Client.config);
+            this.config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(Server.host))));
+            this.xmlRpcClient.setConfig(this.config);
             params.removeAllElements();
 
             try {
                 System.out.println("[WordConcat] Requesting host string");
-                String hostString = (String) Client.xmlRpcClient.execute("Node.rpcRequestString", params);
+                String hostString = (String) this.xmlRpcClient.execute("Node.rpcRequestString", params);
                 hostString.concat(rndString);
                 params.removeAllElements();
                 params.add(hostString);
                 System.out.println("[WordConcat] Sending new string to host");
-                boolean response = (boolean) Client.xmlRpcClient.execute("Node.rpcOverrideString", params);
+                boolean response = (boolean) this.xmlRpcClient.execute("Node.rpcOverrideString", params);
                 return response;
             } catch (XmlRpcException e) {
                 e.printStackTrace();
@@ -51,18 +64,19 @@ public class WordConcatenation {
     /**
      * Method to check if all strings which were added in the process are part of the result string
      */
-    public void checkAddedWords() throws XmlRpcException {
+    public boolean checkAddedWords() throws XmlRpcException {
         Vector<Object> params = new Vector<>();
         params.removeAllElements();
-        String hostString = (String) Client.xmlRpcClient.execute("Node.rpcRequestString", params);
+        String hostString = (String) this.xmlRpcClient.execute("Node.rpcRequestString", params);
 
         for (String addedWord : addedStrings) {
             if(hostString.contains(addedWord)) continue;
 
             System.out.println("[WordConcat] The host strong does not contain " + addedWord);
-            return;
+            return false;
         }
         System.out.println("[WordConcat] concatenation complete");
+        return true;
     }
 
     /**
@@ -85,6 +99,10 @@ public class WordConcatenation {
         String rndString = "";
         //TODO: get the String from file
         return rndString;
+    }
+
+    public void setWordSet(HashSet<String> wordSet) {
+        this.rndWordSet = wordSet;
     }
 
 }
