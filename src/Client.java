@@ -134,7 +134,7 @@ public class Client {
 	public void startConcatProcess(){
 		if(serverURLs.size() > 1){
 			params.removeAllElements();
-			runOverRpc("Node.startOperations", params);
+			runOverRpc("Node.startConcatProcess", params);
 		} else {
 			System.err.println("[Client] You are not connected to a network");
 		}
