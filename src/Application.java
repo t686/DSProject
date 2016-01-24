@@ -15,11 +15,12 @@ public class Application {
 				System.out.println("Ricart Agrawala algorithm selected");
 				RicartAgrawalaServer raServer = new RicartAgrawalaServer();
 				RicartAgrawalaClient raClient = new RicartAgrawalaClient();
+				raServer.init();
 
 				Reader RAreader = new Reader(raClient);
-				RAreader.start();
 
-				raServer.init();
+				Thread raReaderThread = new Thread(RAreader);
+				raReaderThread.start();
 
 
 				break;
@@ -38,10 +39,9 @@ public class Application {
 				server.init();
 
 				Reader reader = new Reader(client);
-				reader.start();
 
-				//Thread readerThread = new Thread(new Reader(client));
-				//readerThread.start();
+				Thread readerThread = new Thread(reader);
+				readerThread.start();
 				break;
 		}
 

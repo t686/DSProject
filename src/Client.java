@@ -137,6 +137,7 @@ public class Client {
 			return;
 		}
 		for (URL serverURL : serverURLs) {
+			if(serverURL.toString().contains(Server.host)) continue;
 			System.out.println("Concat started for node: " + serverURL);
 			new Thread(new ConcatBroadcaster(serverURL)).start();
 		}
@@ -211,8 +212,13 @@ public class Client {
 		}
 		@Override
 		public void run() {
+			System.err.println("ConcatBroadcaster to node: " + serverURL);
 			params.removeAllElements();
+			int xmlrpcConnTimeout = 10000; // Connection timeout
+			int xmlrpcReplyTimeOut = 60000; // Reply timeout
 			config.setServerURL(serverURL);
+			config.setConnectionTimeout(xmlrpcConnTimeout);
+			config.setReplyTimeout(xmlrpcReplyTimeOut);
 			xmlRpcClient.setConfig(config);
 			try {
 				xmlRpcClient.execute("Node.startConcatProcess", params);

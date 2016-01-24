@@ -26,32 +26,38 @@ public class Server{
 	public static final int port = findFreePort();
 
 	public static String host = "none";
-	private HashSet<String> rndWordSet = new HashSet<>();
+	public HashSet<String> rndWordSet = new HashSet<>();
 
 	public static HashSet<String> connectedNodes = new HashSet<>(); //List of active Nodes IPs
 	public static int stoppedNodes = 0; 							//Counter of nodes successfully stopped
 
 	//!!! FIELDS FOR CONCATENATION PROCESS !!!
 
-	private WordConcatenation concatObject = new WordConcatenation();
-	private LinkedList<String> requestQueue = new LinkedList<>();
-	private boolean critSectionBusy = false;
-	private boolean isRunning = false;
-	private long startTime;
-	private int stoppedRequester = 0;
+	public WordConcatenation concatObject = new WordConcatenation();
+	public LinkedList<String> requestQueue = new LinkedList<>();
+	public boolean critSectionBusy;
+	public boolean isRunning;
+	public long startTime;
+	public int stoppedRequester;
 
 	//!!! CONCAT BLOCK END !!!
 
-	private XmlRpcConnector xmlRpcConnector = new XmlRpcConnector();
+	public XmlRpcConnector xmlRpcConnector = new XmlRpcConnector();
 
 
 	//Using HashSet we eliminate the probability of identical elements on a data structure level
-	private String hostString = "";
+	public String hostString = "";
+
+	public Server() {
+		System.out.println("OH SHIT!!!!!!!!!!!!!");
+	}
 
 	//Start the WebServer
 	public void init() {
 		System.out.println("Server starting...");
-		
+		isRunning = false;
+		critSectionBusy = false;
+		stoppedRequester = 0;
 		try{
 			connectedNodes.add(Client.nodeIPnPort);
 			Client.serverURLs.add(new URL(Client.getFullAddress(Client.urlFormatter(Client.nodeIPnPort))));
@@ -191,6 +197,7 @@ public class Server{
 	 * Method called by concatBroadcaster to initiate the Concatenation process
      */
 	public boolean startConcatProcess() {
+		System.out.println("Starting concatenation process!");
 		if(Client.nodeIPnPort.equals(host)){
 			return false;
 		}
@@ -223,12 +230,14 @@ public class Server{
 	}
 
 	private boolean concatLoop(WordConcatenation concatObject) {
+		System.out.println("Starting concatLoop!");
 		Vector<Object> params = new Vector<>();
 		params.removeAllElements();
 		params.add(Client.nodeIPnPort);
 		String response = "";
 
 		while (true) {
+			System.out.println("Asking for lifesign");
 			try {
 				response = this.xmlRpcConnector.requestString("Node.rpcLifeSign", params);
 			} catch (XmlRpcException e) {
@@ -238,9 +247,11 @@ public class Server{
 			}
 			switch (response) {
 				case "goOn":
-					concatObject.concatString( );
+					System.out.println("Got 'goOn'");
+					concatObject.concatString();
 					return true;
 				case "wait":
+					System.out.println("Have to WAIT");
 					try {
 						Thread.sleep(50);
 					} catch (InterruptedException e) {
@@ -249,6 +260,7 @@ public class Server{
 					}
 					break;
 				case "stop":
+					System.out.println("Should STOP");
 					return false;
 			}
 		}
@@ -260,26 +272,37 @@ public class Server{
 	 */
 	public String rpcLifeSign(String requester) {
 
-		if (!isRunning) {
+		System.out.println("Getting a request for lifeSign");
+		if (!isRunning()) {
+			System.out.println("Starting timer");
 			startTimer();
 		}
 		if (checkElapsedTime()) {
+			System.out.println("Time is over sending a STOP to: " + requester);
 			stoppedRequester++;
+			System.out.println(stoppedRequester);
 			if (stoppedRequester == connectedNodes.size()-1) broadCastCheckConcat();
 			return "stop";
 		}
 		if (critSectionBusy) {
-			requestQueue.offer(requester);
+			System.out.println("Sending a WAIT to: " + requester);
+			requestQueue.push(requester);
 			return "wait";
 		}
 		else {
-			if(requestQueue.isEmpty() || requestQueue.peek().equals(requester)) {
-				requestQueue.poll();
+			System.out.println("critSection not Busy so check for Requester in Queue for: " + requester);
+			System.out.println("Queue peek: " + requestQueue.peek());
+			if(requestQueue.isEmpty()) {
+				critSectionBusy = true;
 				return "goOn";
 			}
-			return "wait";
+			else if(requestQueue.peek().equals(requester)) {
+				requestQueue.poll();
+				critSectionBusy = true;
+				return "goOn";
+			}
+			else return "wait";
 		}
-		//TODO catch every possible scenario
 	}
 
 	/**
@@ -299,6 +322,7 @@ public class Server{
      */
 	public boolean rpcOverrideString(String newString) {
 		this.hostString = newString;
+		critSectionBusy = false;
 		return true;
 	}
 
@@ -375,6 +399,10 @@ public class Server{
 
 	private void startTimer() {
 		this.startTime = System.nanoTime();
+		this.isRunning = true;
+	}
+	private boolean isRunning() {
+		return this.isRunning;
 	}
 	private boolean checkElapsedTime() {
 		double elapsedTime = (System.nanoTime() - this.startTime) / 1000000000.0;

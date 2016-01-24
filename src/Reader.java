@@ -4,7 +4,7 @@ import java.io.InputStreamReader;
 
 import org.apache.xmlrpc.XmlRpcException;
 
-public class Reader extends Thread{
+public class Reader implements Runnable{
 	
 	public Client client;
 	
