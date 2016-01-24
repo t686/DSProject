@@ -26,19 +26,19 @@ public class Server{
 	public static final int port = findFreePort();
 
 	public static String host = "none";
-	public HashSet<String> rndWordSet = new HashSet<>();
+	public static HashSet<String> rndWordSet = new HashSet<>();
 
 	public static HashSet<String> connectedNodes = new HashSet<>(); //List of active Nodes IPs
 	public static int stoppedNodes = 0; 							//Counter of nodes successfully stopped
 
 	//!!! FIELDS FOR CONCATENATION PROCESS !!!
 
-	public WordConcatenation concatObject = new WordConcatenation();
-	public LinkedList<String> requestQueue = new LinkedList<>();
-	public boolean critSectionBusy;
-	public boolean isRunning;
-	public long startTime;
-	public int stoppedRequester;
+	public static WordConcatenation concatObject = new WordConcatenation();
+	public static LinkedList<String> requestQueue = new LinkedList<>();
+	public static boolean critSectionBusy;
+	public static boolean isRunning;
+	public static long startTime;
+	public static int stoppedRequester;
 
 	//!!! CONCAT BLOCK END !!!
 
@@ -46,10 +46,9 @@ public class Server{
 
 
 	//Using HashSet we eliminate the probability of identical elements on a data structure level
-	public String hostString = "";
+	public static String hostString = "";
 
 	public Server() {
-		System.out.println("OH SHIT!!!!!!!!!!!!!");
 	}
 
 	//Start the WebServer
