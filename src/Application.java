@@ -11,15 +11,19 @@ public class Application {
 		System.out.println("Oi, mate!");
 		switch (args[0] ) {
 			case "RA" :
-				RAServer raServer = new RAServer();
+				System.out.println("Ricart Agrawala algorithm selected");
+				RicartAgrawalaServer raServer = new RicartAgrawalaServer();
 				RicartAgrawalaClient raClient = new RicartAgrawalaClient();
+				
+				Reader RAreader = new Reader(raClient);
+				RAreader.start();
 
-				raServer.run();
-				raClient.run();
+				raServer.init();
 
 
 				break;
 			case "CME" :
+				System.out.println("Central Mutual Exclusion algorithm selected");
 				//init the Server and Client
 				Server server = new Server();
 				Client client = new Client();
@@ -30,7 +34,7 @@ public class Application {
 
 				//clientThread.start();
 				//serverThread.start();
-				server.run();
+				server.init();
 
 				Reader reader = new Reader(client);
 				reader.start();

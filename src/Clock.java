@@ -1,7 +1,4 @@
-/*
- * Class required by Ricart-Agrawala algorithm
- * (Implement later) 
- */
+
 public class Clock {
 	
 	private int currentClock;

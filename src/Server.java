@@ -14,10 +14,9 @@ import org.apache.xmlrpc.server.XmlRpcServer;
 import org.apache.xmlrpc.server.XmlRpcServerConfigImpl;
 import org.apache.xmlrpc.webserver.WebServer;
 
-public class Server implements Runnable{
+public class Server{
 	
-	//public static final int port = findFreePort();
-	public static final int port = findFreePort(); 					//For easier test results analysis
+	public static final int port = findFreePort();
 
 	public static String host = "none";
 	
@@ -27,9 +26,8 @@ public class Server implements Runnable{
 	//Using HashSet we eliminate the probability of identical elements on a data structure level
 	private String hostString = "";
 
-	@Override
 	//Start the WebServer
-	public void run() {
+	public void init() {
 		System.out.println("Server starting...");
 		
 		try{
