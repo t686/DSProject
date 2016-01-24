@@ -1,3 +1,4 @@
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /*
@@ -6,7 +7,7 @@ import java.io.IOException;
 
 public class Application {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, FileNotFoundException {
 		//RA CME
 		System.out.println("Oi, mate!");
 		switch (args[0] ) {

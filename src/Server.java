@@ -1,12 +1,19 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Vector;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Stream;
 
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
@@ -19,6 +26,7 @@ public class Server{
 	public static final int port = findFreePort();
 
 	public static String host = "none";
+	private HashSet<String> rndWordSet = new HashSet<>();
 	
 	public static HashSet<String> connectedNodes = new HashSet<>(); //List of active Nodes IPs
 	public static int stoppedNodes = 0; 							//Counter of nodes successfully stopped
@@ -61,7 +69,8 @@ public class Server{
 		} catch(IOException e){
 			e.printStackTrace();
 		}
-		System.out.println("Server finished!");
+		if(!loadFile()) System.out.println("File not found!");
+		else System.out.println("File loaded successfully!");
 	}
 	
 	public Object[] join(String newNodeIP){
@@ -172,8 +181,63 @@ public class Server{
 		if(Client.nodeIPnPort.equals(host)){
 			return false;
 		}
+		boolean keepGoing = true;
+		WordConcatenation concatObject = new WordConcatenation();
 
+		try {
+			Client.config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(host))));
+			Client.xmlRpcClient.setConfig(Client.config);
+
+		} catch (MalformedURLException e) {
+			System.err.println("MalformedURLException!");
+			e.printStackTrace();
+		}
+
+		while (keepGoing) {
+			try {
+				Thread.sleep(ThreadLocalRandom.current().nextInt(2000, 4000 + 1));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				Thread.currentThread().interrupt();
+			}
+			keepGoing = concatLoop(concatObject);
+		}
+		try {
+			concatObject.checkAddedWords();
+		} catch (XmlRpcException e) {
+			e.printStackTrace();
+		}
+		concatObject.clearList();
 		return true;
+	}
+
+	private boolean concatLoop(WordConcatenation concatObject) {
+		Vector<Object> params = new Vector<>();
+		params.removeAllElements();
+		String response = "";
+
+		while (true) {
+			try {
+				response = (String) Client.xmlRpcClient.execute("Node.rpcLifeSign", params);
+			} catch (XmlRpcException e) {
+				e.printStackTrace();
+			}
+			switch (response) {
+				case "goOn":
+					concatObject.concatString("DUMMY");
+					return true;
+				case "wait":
+					try {
+						Thread.sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+						Thread.currentThread().interrupt();
+					}
+					break;
+				case "stop":
+					return false;
+			}
+		}
 	}
 	/**
 	 * Method to let the requester know that this node is alive
@@ -256,5 +320,19 @@ public class Server{
 			}
 		}
 		throw new IllegalStateException("Could not find a free TCP/IP port to start HTTP Server on");
+	}
+	private boolean loadFile() {
+		File file = new File(String.valueOf(Server.class.getResource("Files/wordList.txt")));
+		if(file.canRead()) System.out.println("File is accessible!");
+		else System.err.println("File not accessible!");
+		try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+			for(String line; (line = br.readLine()) != null; ) {
+				rndWordSet.add(line);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 }
