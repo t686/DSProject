@@ -27,7 +27,8 @@ public class Server{
 
 	public static String host = "none";
 	private HashSet<String> rndWordSet = new HashSet<>();
-	
+	private String [] rndWordArray = {"the","of","and","to",};
+
 	public static HashSet<String> connectedNodes = new HashSet<>(); //List of active Nodes IPs
 	public static int stoppedNodes = 0; 							//Counter of nodes successfully stopped
 	
@@ -322,9 +323,9 @@ public class Server{
 		throw new IllegalStateException("Could not find a free TCP/IP port to start HTTP Server on");
 	}
 	private boolean loadFile() {
-		File file = new File(String.valueOf(Server.class.getResource("Files/wordList.txt")));
-		if(file.canRead()) System.out.println("File is accessible!");
-		else System.err.println("File not accessible!");
+		String tempPath = (Server.class.getResource("Files/wordList.txt")).toString();
+		String filePath = tempPath.substring(tempPath.indexOf(":")+1);
+		File file = new File(filePath);
 		try(BufferedReader br = new BufferedReader(new FileReader(file))) {
 			for(String line; (line = br.readLine()) != null; ) {
 				rndWordSet.add(line);
