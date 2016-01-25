@@ -1,0 +1,11 @@
+c++/build-DSProject-Desktop_Qt_5_5_1_clang_64bit-Debug
+c++/build-DSProject-Desktop_Qt_5_5_1_clang_64bit-Release
+c++/DSProject/GeneratedFiles
+c++/DSProject/x64
+bin/Bully.class
+bin/Client$ConcatBroadcaster.class
+bin/Client$State.class
+bin/RicartAgrawalaClient.class
+bin/RicartAgrawalaServer.class
+bin/Server$CheckConcatBroadcaster.class
+bin/Server$XmlRpcConnector.class
