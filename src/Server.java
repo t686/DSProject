@@ -64,6 +64,7 @@ public class Server{
 
 		try {
 			propertyHandlMap.addHandler("Node", Server.class);
+			propertyHandlMap.addHandler("RANode", RicartAgrawalaServer.class);
 		} catch(XmlRpcException e){
 			e.printStackTrace();
 		}
@@ -114,12 +115,6 @@ public class Server{
 		return false;
 
 	}
-
-//	public boolean startOperations(String word){
-//		System.out.println("[Server] Initial word: " + word+". Starting RA Client...");
-//		//new Thread(new RicartAgrawalaClient()).start();
-//		return true;
-//	}
 
 	public boolean startElection() {
 		if (!(connectedNodes.size() > 1)) {

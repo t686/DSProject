@@ -141,11 +141,6 @@ public class Client {
 		}
 	}
 	
-	//function called after the EXECUTION_TIME <= 0 from the RA Client class
-	public void stopOperations(){
-		params.removeAllElements();
-		runOverRpc("Node.stopOperations", params);
-	}
 	
 	/*
 	 * Synchronized function that triggers start or stop functions on all nodes simultaneously
