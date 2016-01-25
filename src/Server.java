@@ -283,6 +283,7 @@ public class Server{
 	 * @return always true to indicate it went correctly
      */
 	public boolean rpcOverrideString(String newString) {
+		System.out.println("[Server] '" + "' was added to my string");
 		this.hostString = newString;
 		return true;
 	}
