@@ -15,10 +15,7 @@ import java.net.ServerSocket;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Server{
@@ -26,7 +23,7 @@ public class Server{
 	public static final int port = findFreePort();
 
 	public static String host = "none";
-	public static HashSet<String> rndWordSet = new HashSet<>();
+	public static ArrayList<String> rndWordSet = new ArrayList<>();
 
 	public static HashSet<String> connectedNodes = new HashSet<>(); //List of active Nodes IPs
 	public static int stoppedNodes = 0; 							//Counter of nodes successfully stopped
@@ -90,6 +87,7 @@ public class Server{
 		}
 		if(!loadFile()) System.out.println("File not found!");
 		else concatObject.setWordSet(rndWordSet);
+		System.out.println(rndWordSet);
 	}
 	
 	public Object[] join(String newNodeIP){
@@ -387,12 +385,14 @@ public class Server{
 		File file = new File(filePath);
 		try(BufferedReader br = new BufferedReader(new FileReader(file))) {
 			for(String line; (line = br.readLine()) != null; ) {
+				System.out.println(line);
 				rndWordSet.add(line);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
 		}
+		System.out.println(rndWordSet.size());
 		return true;
 	}
 

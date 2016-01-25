@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Vector;
+import java.util.concurrent.ThreadLocalRandom;
 
 /*
  * Class specifically for:
@@ -16,14 +17,14 @@ import java.util.Vector;
  */
 public class WordConcatenation {
 
-    private HashSet<String> rndWordSet = new HashSet<>();
-    private ArrayList<String> addedStrings;
+    private static ArrayList<String> rndWordSet = new ArrayList<>();
+    private static ArrayList<String> addedStrings;
 
     private XmlRpcClient xmlRpcClient;
     private XmlRpcClientConfigImpl config;
 
     public WordConcatenation() {
-        this.addedStrings = new ArrayList<>();
+        addedStrings = new ArrayList<>();
         this.config = new XmlRpcClientConfigImpl();
         this.xmlRpcClient = new XmlRpcClient();
     }
@@ -68,8 +69,9 @@ public class WordConcatenation {
         Vector<Object> params = new Vector<>();
         params.removeAllElements();
         String hostString = (String) this.xmlRpcClient.execute("Node.rpcRequestString", params);
-
+        System.out.println(addedStrings.size() + " Strings were added!");
         for (String addedWord : addedStrings) {
+            System.out.println(addedWord);
             if(hostString.contains(addedWord)) continue;
 
             System.out.println("[WordConcat] The host strong does not contain " + addedWord);
@@ -96,12 +98,13 @@ public class WordConcatenation {
     }
 
     private String getRndString() {
-        String rndString = "";
-        //TODO: get the String from file
+
+        int rndInt = ThreadLocalRandom.current().nextInt(0, 999);
+        String rndString = rndWordSet.get(rndInt);
         return rndString;
     }
 
-    public void setWordSet(HashSet<String> wordSet) {
+    public void setWordSet(ArrayList<String> wordSet) {
         this.rndWordSet = wordSet;
     }
 
