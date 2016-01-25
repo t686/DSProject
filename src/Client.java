@@ -198,6 +198,8 @@ public class Client {
 
 		private URL serverURL;
 		private Vector<Object> params = new Vector<>();
+		private XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+		private XmlRpcClient xmlRpcClient = new XmlRpcClient();
 
 		public ConcatBroadcaster(URL serverURL) {
 			this.serverURL = serverURL;
@@ -205,10 +207,14 @@ public class Client {
 		@Override
 		public void run() {
 			params.removeAllElements();
-			config.setServerURL(serverURL);
-			xmlRpcClient.setConfig(config);
+			int xmlrpcConnTimeout = 10000; // Connection timeout
+			int xmlrpcReplyTimeOut = 60000; // Reply timeout
+			this.config.setServerURL(serverURL);
+			this.config.setConnectionTimeout(xmlrpcConnTimeout);
+			this.config.setReplyTimeout(xmlrpcReplyTimeOut);
+			this.xmlRpcClient.setConfig(config);
 			try {
-				xmlRpcClient.execute("Node.startConcatProcess", params);
+				this.xmlRpcClient.execute("Node.startConcatProcess", params);
 			} catch (XmlRpcException e) {
 				System.err.println("[ConcatBroadcaster] Node " + serverURL + " does not respond");
 				e.printStackTrace();
