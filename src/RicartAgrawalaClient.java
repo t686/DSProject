@@ -8,8 +8,10 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.xmlrpc.XmlRpcException;
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 
-public class RicartAgrawalaClient extends Client implements Runnable{
+public class RicartAgrawalaClient extends Client {
 	
 	int minWaitRange = 1000;
 	int maxWaitRange = 3000;
@@ -78,8 +80,8 @@ public class RicartAgrawalaClient extends Client implements Runnable{
 			lock.unlock();
 		}
 	}
-	
 
+	@Override
 	public void startConcatProcess(){
 		if(serverURLs.size() > 1){
 			
@@ -132,33 +134,28 @@ public class RicartAgrawalaClient extends Client implements Runnable{
 	public class runConcatBroadcast implements Runnable{
 
 		private URL serverURL;
-		private Vector<Object> params1 = new Vector<>();
+		private Vector<Object> params = new Vector<>();
+		private XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+		private XmlRpcClient xmlRpcClient = new XmlRpcClient();
 
 		public runConcatBroadcast(URL url) {
 			this.serverURL = url;
 		}
 		@Override
 		public void run() {
-			params1.removeAllElements();
+			params.removeAllElements();
 			int xmlrpcConnTimeout = 10000; // Connection timeout
 			int xmlrpcReplyTimeOut = 60000; // Reply timeout
-			Client.config.setServerURL(serverURL);
-			Client.config.setConnectionTimeout(xmlrpcConnTimeout);
-			Client.config.setReplyTimeout(xmlrpcReplyTimeOut);
-			Client.xmlRpcClient.setConfig(Client.config);
+			config.setServerURL(serverURL);
+			config.setConnectionTimeout(xmlrpcConnTimeout);
+			config.setReplyTimeout(xmlrpcReplyTimeOut);
+			xmlRpcClient.setConfig(config);
 			try {
-				Client.xmlRpcClient.execute("RANode.startRAConcat", params1);
+				xmlRpcClient.execute("RANode.startRAConcat", params);
 			} catch (XmlRpcException e) {
 				System.err.println("[RA Conccat Broadcast] Node " + serverURL + " does not respond");
 				e.printStackTrace();
 			}
 		}
 	}
-
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

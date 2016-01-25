@@ -31,7 +31,7 @@ public class RicartAgrawalaServer extends Server {
 	public void setIDs(){
 		int k = 1;
 		for(String nodeID : connectedNodes){
-			if(nodeID.equals(Client.formatAddress(Client.nodeIPnPort))){
+			if(nodeID.equals(Client.nodeIPnPort)){
 				RicartAgrawalaClient.nodeID = k;
 			}
 			k++;
