@@ -5,7 +5,6 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Vector;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -103,12 +102,11 @@ public class WordConcatenation {
     private String getRndString() {
 
         int rndInt = ThreadLocalRandom.current().nextInt(0, 999);
-        String rndString = rndWordSet.get(rndInt);
-        return rndString;
+        return rndWordSet.get(rndInt);
     }
 
     public void setWordSet(ArrayList<String> wordSet) {
-        this.rndWordSet = wordSet;
+        rndWordSet = wordSet;
     }
 
 }
