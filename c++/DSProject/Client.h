@@ -26,7 +26,7 @@ public:
 
 	static QString nodeIp;
 	static QString nodeIPnPort;
-    static std::vector<QString> serverURLs;
+    static QStringList serverURLs;
 
 	long EXECUTION_TIME;
 	QList<QVariant> params;

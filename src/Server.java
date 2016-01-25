@@ -64,6 +64,7 @@ public class Server{
 
 		try {
 			propertyHandlMap.addHandler("Node", Server.class);
+			propertyHandlMap.addHandler("RANode", RicartAgrawalaServer.class);
 		} catch(XmlRpcException e){
 			e.printStackTrace();
 		}
@@ -114,12 +115,6 @@ public class Server{
 		return false;
 
 	}
-
-//	public boolean startOperations(String word){
-//		System.out.println("[Server] Initial word: " + word+". Starting RA Client...");
-//		//new Thread(new RicartAgrawalaClient()).start();
-//		return true;
-//	}
 
 	public boolean startElection() {
 		if (!(connectedNodes.size() > 1)) {
@@ -255,7 +250,7 @@ public class Server{
 		}
 		if (checkElapsedTime()) {
 			stoppedRequester++;
-			if (stoppedRequester == connectedNodes.size()-1) broadCastCheckConcat();
+			if (stoppedRequester == connectedNodes.size()-1) finishCheckConcat();
 			return "stop";
 		}
 		if (critSectionBusy) {
@@ -278,7 +273,7 @@ public class Server{
 	 * @return current host string
      */
 	public String rpcRequestString() {
-		return this.hostString;
+		return hostString;
 	}
 
 	/**
@@ -288,7 +283,8 @@ public class Server{
 	 * @return always true to indicate it went correctly
      */
 	public boolean rpcOverrideString(String newString) {
-		this.hostString = newString;
+		System.out.println("[Server] '" + newString.replace(hostString, "") + "' was added to my string");
+		hostString = newString;
 		return true;
 	}
 
@@ -365,21 +361,22 @@ public class Server{
 	}
 
 	private void startTimer() {
-		this.startTime = System.nanoTime();
+		startTime = System.nanoTime();
 	}
 	private boolean checkElapsedTime() {
-		double elapsedTime = (System.nanoTime() - this.startTime) / 1000000000.0;
+		double elapsedTime = (System.nanoTime() - startTime) / 1000000000.0;
 		return (elapsedTime > 20);
 
 	}
 	private void lockCritSection() {
-		this.critSectionBusy = true;
+		critSectionBusy = true;
 	}
 	private void unlockCritSection() {
-		this.critSectionBusy = false;
+		critSectionBusy = false;
 	}
 
-	private void broadCastCheckConcat() {
+	private void finishCheckConcat() {
+		System.out.println("[Server] Concatenation finished");
 
 	}
 

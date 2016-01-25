@@ -7,9 +7,9 @@ Bully::Bully() : QObject(){
 bool Bully::startElection(int ownPort, QList<QVariant> connectedNodes) {
 	QString response;
 
-    std::cout << std::endl << "node " << ownPort << " starts election process!";
-    foreach (QVariant node, connectedNodes) {
-		if (extractPortFromIPnPort(node.toString()) <= ownPort) continue;
+    std::cout << std::endl << "node " << ownPort << " starts election process!" << std::endl;
+    foreach(QVariant node, connectedNodes) {
+        if (extractPortFromIPnPort(node.toString()) <= ownPort) continue;
 		response = messageNode(ownPort, node.toString());
 
 		if (response == "Continue"){
@@ -33,7 +33,7 @@ QString Bully::messageNode(int ownPort, QString node) {
 
 	QList<QVariant> params;
     std::cout << std::endl << "sending election message to: " << node.toStdString();
-    glbClient::client->setHost(Client::getFullAddress(Client::urlFormatter(node)));
+    glbClient::client->setHostAndPort(Client::getFullAddress(Client::urlFormatter(node)));
 	params.append(ownPort);
 
     glbClient::client->execute("rpcElectionRequest", params);
@@ -53,7 +53,7 @@ QString Bully::messageNode(int ownPort, QString node) {
 bool Bully::signOffDisconnectedNode(QString node) {
 	QList<QVariant> params;
 
-    glbClient::client->setHost(Client::getFullAddress(Client::getFullAddress(Client::urlFormatter(Client::nodeIPnPort))));
+    glbClient::client->setHostAndPort(Client::getFullAddress(Client::getFullAddress(Client::urlFormatter(Client::nodeIPnPort))));
 	params.append(node);
 
     glbClient::client->execute("signOff", params);
@@ -64,9 +64,5 @@ bool Bully::signOffDisconnectedNode(QString node) {
 }
 
 int Bully::extractPortFromIPnPort(QString nodeIPnPort) {
-	int port;
-	QString portString = nodeIPnPort.right(nodeIPnPort.length() - nodeIPnPort.indexOf(":"));
-	port = portString.toInt();
-
-	return port;
+	return nodeIPnPort.right(nodeIPnPort.length() - nodeIPnPort.indexOf(":") - 1).toInt();
 }

@@ -5,6 +5,7 @@ public class RicartAgrawalaServer extends Server {
 	
 	public void init(){
 		super.init();
+		setIDs();
 		System.out.println("[RA Server] Launching ...");
 	}
 	
@@ -30,11 +31,16 @@ public class RicartAgrawalaServer extends Server {
 	public void setIDs(){
 		int k = 1;
 		for(String nodeID : connectedNodes){
-			if(nodeID.equals(Client.formatAddress(Client.nodeIPnPort))){
+			if(nodeID.equals(Client.nodeIPnPort)){
 				RicartAgrawalaClient.nodeID = k;
 			}
 			k++;
 		}
+	}
+	
+	public boolean startRAConcat(){
+		System.out.println("[RA Server] Concat process started on node: "+RicartAgrawalaClient.nodeID);
+		return true;
 	}
 	
 	public boolean checkState(int TS, int nodeID){

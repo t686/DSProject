@@ -8,9 +8,10 @@ bool WordConcatenation::concatString() {
 	QList<QVariant> params;
 	QString rndString = getRndString();
 
-    glbClient::client->setHost(Client::getFullAddress(Client::urlFormatter(glb::host)));
+    glbClient::client->setHostAndPort(Client::getFullAddress(Client::urlFormatter(glb::host)));
 
 	std::cout << std::endl << "[WordConcat] Requesting host std::string";
+	params.append(QVariant());
     glbClient::client->execute("rpcRequestString", params);
 
     while (glbClient::client->isWaiting())
@@ -31,6 +32,7 @@ bool WordConcatenation::concatString() {
 
 bool WordConcatenation::checkAddedWords(){
 	QList<QVariant> params;
+	params.append(QVariant());
     glbClient::client->execute("rpcRequestString", params);
 
     while (glbClient::client->isWaiting())

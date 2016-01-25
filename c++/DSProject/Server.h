@@ -30,14 +30,15 @@ public:
 	public slots:
 		QVariant join(const QVariant &newNodeIP);
 		QVariant signOff(const QVariant &nodeIP);
-		QVariant startElection();
+		QVariant startElection(const QVariant &dummy);
 		QVariant rpcElectionRequest(const QVariant &requester);
 		QVariant hostBroadcast(const QVariant &newHost);
-		QVariant startConcatProcess();
+		QVariant startConcatProcess(const QVariant &dummy);
 		QVariant rpcLifeSign(const QVariant &requester);
-		QVariant rpcOverrideString(const QVariant &newString);
-		QVariant checkConcatResult();
+		QVariant checkConcatResult(const QVariant &dummy);
 		QVariant echo(const QVariant& e) { return e; }
+		QVariant rpcRequestString(const QVariant &dummy);
+		QVariant rpcOverrideString(const QVariant &newString);
 
 protected:
     std::vector<QString> rndWordSet;

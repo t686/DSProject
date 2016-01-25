@@ -2,7 +2,7 @@
 
 QString Client::nodeIp = "";
 QString Client::nodeIPnPort = "";
-std::vector<QString> Client::serverURLs = std::vector<QString>();
+QStringList Client::serverURLs = QStringList();
 
 Client::Client() : XmlRpcClient("127.0.0.1",0){
     
@@ -16,7 +16,7 @@ void Client::init(){
 	std::cout << std::endl << "Client data initializing...";
 
 	foreach(const QHostAddress &address,QNetworkInterface::allAddresses()) {
-        if (address.protocol() == QAbstractSocket::IPv4Protocol && address.toString().contains("192.")){
+		if (address.protocol() == QAbstractSocket::IPv4Protocol && (address.toString().contains("192.") || address.toString().contains("127."))){
             nodeIp = address.toString();
         }
 	}
@@ -36,7 +36,7 @@ void Client::join(QString newNodeIP){
         std::cout << std::endl << "You can't connect to yourself!";
     }
     else{
-		setHost(getFullAddress(urlFormatter(newNodeIP)));
+		setHostAndPort(getFullAddress(urlFormatter(newNodeIP)));
         params.clear();
 		params.append(nodeIPnPort);
 			
@@ -59,8 +59,10 @@ void Client::join(QString newNodeIP){
 
             //Inform other nodes about a new member of the network
             for (int i = 0; i<serverURLs.size(); i++){
-                setHostAndPort(serverURLs[i]);
-                execute("join", params);
+				if (serverURLs[i] != nodeIPnPort && serverURLs[i] != newNodeIP){
+					setHostAndPort(serverURLs[i]);
+					execute("join", params);
+				}
             }
             startElection();
         }
@@ -77,7 +79,7 @@ void Client::signOff(){
 
 		foreach (QString url,serverURLs) {
 			if (url == getFullAddress(nodeIPnPort)){
-				setHost(url);
+				setHostAndPort(url);
 				params.clear();
 				params.append(nodeIPnPort);
 				execute("signOff", params);
@@ -110,6 +112,7 @@ void Client::startElection(){
 	else {
         setHostAndPort(getFullAddress(urlFormatter(nodeIPnPort)));
 		params.clear();
+		params.append(QVariant());
         std::cout << std::endl << "starting election on: " << nodeIPnPort.toStdString() << std::endl;
 		execute("startElection", params);
 	}
@@ -133,6 +136,7 @@ void Client::startConcatProcess(){
 
 void Client::stopOperations(){
 	params.clear();
+	params.append(QVariant());
 	runOverRpc("stopOperations", params);
 	emit finishedTask();
 }
@@ -140,7 +144,7 @@ void Client::stopOperations(){
 void Client::runOverRpc(QString functionName, QList<QVariant> in_params){
 
 	foreach(QString url,serverURLs){
-		setHost(url);
+		setHostAndPort(url);
         std::cout << std::endl << "[Client] Running function: " << functionName.toStdString() << " over RPC.";
 		execute(functionName, in_params);
 	}
