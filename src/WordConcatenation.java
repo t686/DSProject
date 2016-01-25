@@ -38,7 +38,7 @@ public class WordConcatenation {
         String rndString = getRndString();
 
         try {
-            this.config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(Server.host))));
+            this.config.setServerURL(new URL(Client.formatAddress(Server.host)));
             this.xmlRpcClient.setConfig(this.config);
             params.removeAllElements();
 

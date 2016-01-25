@@ -4,7 +4,7 @@ import java.io.InputStreamReader;
 
 import org.apache.xmlrpc.XmlRpcException;
 
-public class Reader implements Runnable{
+public class Reader extends Thread{
 	
 	public Client client;
 	
@@ -18,7 +18,7 @@ public class Reader implements Runnable{
 	@Override
 	public void run() {
 		//Infinite loop for listening to input characters
-		System.out.println("List of options: join, signoff, start, bully, host, list, exit");
+		System.out.println("== List of options == \n-join \n-signoff \n-start \n-bully  \n-host  \n-list  \n-exit");
 		while(true){
 			try{
 				inputText = buffReader.readLine().trim();
@@ -38,15 +38,12 @@ public class Reader implements Runnable{
 					client.join(newNodeIP);
 					break;
 				case "signoff":
-					//System.out.println("Operation \"Sign Off\" initiated.");
 					client.signOff();
 					break;
 				case "start":
-					System.out.println("concatenation process initiated.");
 					client.startConcatProcess();
 					break;
 				case "bully":
-					System.out.println("Host election initiated.");
 					client.startElection();
 					break;
 				case "host":
