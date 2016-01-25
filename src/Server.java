@@ -15,66 +15,64 @@ import java.net.ServerSocket;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Server{
-	
-	public static final int port = findFreePort();
+
+	public static final int port = getPort();
 
 	public static String host = "none";
-	private HashSet<String> rndWordSet = new HashSet<>();
+	public static String hostString = "";
+	public static ArrayList<String> rndWordSet = new ArrayList<>();
+	public static ArrayList<String> addedWords = new ArrayList<>();
 
+	//Using HashSet we eliminate the probability of identical elements on a data structure level
 	public static HashSet<String> connectedNodes = new HashSet<>(); //List of active Nodes IPs
 	public static int stoppedNodes = 0; 							//Counter of nodes successfully stopped
 
-	//!!! FIELDS FOR CONCATENATION PROCESS !!!
+	//FIELDS FOR CONCATENATION PROCESS
+	public static WordConcatenation concatObject = new WordConcatenation();
+	public static LinkedList<String> requestQueue = new LinkedList<>();
+	public static boolean critSectionBusy;
+	public static boolean isRunning;
+	public static long startTime;
+	public static int stoppedRequester;
 
-	private WordConcatenation concatObject = new WordConcatenation();
-	private LinkedList<String> requestQueue = new LinkedList<>();
-	private boolean critSectionBusy = false;
-	private boolean isRunning = false;
-	private long startTime;
-	private int stoppedRequester = 0;
-
-	//!!! CONCAT BLOCK END !!!
-
+	//CONCAT BLOCK END
+	
 	private XmlRpcConnector xmlRpcConnector = new XmlRpcConnector();
 
-
-	//Using HashSet we eliminate the probability of identical elements on a data structure level
-	private String hostString = "";
+	public Server() {
+	}
 
 	//Start the WebServer
 	public void init() {
 		System.out.println("Server starting...");
-		
+
 		try{
 			connectedNodes.add(Client.nodeIPnPort);
-			Client.serverURLs.add(new URL(Client.getFullAddress(Client.urlFormatter(Client.nodeIPnPort))));
-			
+			Client.serverURLs.add(new URL(Client.formatAddress(Client.nodeIPnPort)));
+
 		}catch(MalformedURLException e){
 			e.printStackTrace();
 		}
-		
+
 		WebServer webServer = new WebServer(port);
 		XmlRpcServer xmlRpcServer = webServer.getXmlRpcServer();
 		PropertyHandlerMapping propertyHandlMap = new PropertyHandlerMapping();
-		
+
 		try {
 			propertyHandlMap.addHandler("Node", Server.class);
 		} catch(XmlRpcException e){
 			e.printStackTrace();
-		} 
-		
+		}
+
 		xmlRpcServer.setHandlerMapping(propertyHandlMap);
 		XmlRpcServerConfigImpl xmlRpcServerConfig = (XmlRpcServerConfigImpl) xmlRpcServer.getConfig();
 		xmlRpcServerConfig.setEnabledForExtensions(true);
 		xmlRpcServerConfig.setContentLengthOptional(false);
-		
+
 		try{
 			DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 			Date date = new Date();
@@ -86,27 +84,27 @@ public class Server{
 		if(!loadFile()) System.out.println("File not found!");
 		else concatObject.setWordSet(rndWordSet);
 	}
-	
+
 	public Object[] join(String newNodeIP){
 		try {
 			if(connectedNodes.add(newNodeIP)){
-				Client.serverURLs.add(new URL(Client.getFullAddress(newNodeIP)));
+				Client.serverURLs.add(new URL(Client.formatAddress(newNodeIP)));
 				System.out.println("[Server] NEW node with address: "+newNodeIP+" was connected!");
 			}
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
-		}		
-		
+		}
+
 		return connectedNodes.toArray();
 	}
-		
+
 	public boolean signOff(String nodeIP){
 		if(connectedNodes.remove(nodeIP)){
 			System.out.println("[Server] Node "+nodeIP+" is leaving the network.");
 
 			for(int i=0; i<Client.serverURLs.size(); i++){
 				URL url = Client.serverURLs.get(i);
-				if(url.toString().compareTo(Client.urlFormatter(nodeIP)) == 0){
+				if(url.toString().compareTo(Client.formatAddress(nodeIP)) == 0){
 					Client.serverURLs.remove(i);
 				}
 			}
@@ -120,15 +118,6 @@ public class Server{
 //	public boolean startOperations(String word){
 //		System.out.println("[Server] Initial word: " + word+". Starting RA Client...");
 //		//new Thread(new RicartAgrawalaClient()).start();
-//		return true;
-//	}
-	
-	//Increment the stopped counter until == connectedNodes hash size and print the final string result 
-//	public boolean stopOperations(){
-//		stoppedNodes++;
-//		if(connectedNodes.size() == stoppedNodes){
-//			System.out.println("[Server] All operations successfully stoped. Final result: " + hostString);
-//		}
 //		return true;
 //	}
 
@@ -151,11 +140,11 @@ public class Server{
 
 		for(String node : connectedNodes) {
 			try {
-				this.xmlRpcConnector.setURL(new URL(Client.getFullAddress(Client.urlFormatter(node))));
+				this.xmlRpcConnector.setURL(new URL(Client.formatAddress(node)));
 				params.removeAllElements();
 				params.add(host);
 
-				boolean response = xmlRpcConnector.requestBool("Node.hostBroadcast", params);
+				xmlRpcConnector.requestBool("Node.hostBroadcast", params);
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			} catch (XmlRpcException e) {
@@ -198,7 +187,7 @@ public class Server{
 		concatObject.clearList();
 
 		try {
-			this.xmlRpcConnector.setURL(new URL(Client.getFullAddress(Client.urlFormatter(host))));
+			this.xmlRpcConnector.setURL(new URL(Client.formatAddress(host)));
 
 		} catch (MalformedURLException e) {
 			System.err.println("MalformedURLException!");
@@ -262,6 +251,7 @@ public class Server{
 
 		if (!isRunning) {
 			startTimer();
+			isRunning = true;
 		}
 		if (checkElapsedTime()) {
 			stoppedRequester++;
@@ -315,7 +305,7 @@ public class Server{
 			return false;
 		}
 	}
-	
+
 
 	/*
 	 * UTILITY METHODS
@@ -331,11 +321,11 @@ public class Server{
 		}else{
 			System.out.println("The network is empty!");
 		}
-		
+
 	}
 
 	//Function by github user @vorburger
-	private static int findFreePort() {
+	private static int getPort() {
 		ServerSocket socket = null;
 		try {
 			socket = new ServerSocket(0);
@@ -370,6 +360,7 @@ public class Server{
 			e.printStackTrace();
 			return false;
 		}
+		System.out.println("[Server] WordSet loaded. Array size: "+rndWordSet.size());
 		return true;
 	}
 

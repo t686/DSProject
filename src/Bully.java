@@ -39,7 +39,7 @@ public class Bully {
         Vector<Object> params = new Vector<>();
         System.out.println("sending election message to: " + node);
         try {
-            Client.config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(node))));
+            Client.config.setServerURL(new URL(Client.formatAddress(node)));
             Client.xmlRpcClient.setConfig(Client.config);
             params.removeAllElements();
             params.add(ownPort);
@@ -59,7 +59,7 @@ public class Bully {
         Vector<Object> params = new Vector<>();
 
         try {
-            Client.config.setServerURL(new URL(Client.getFullAddress(Client.urlFormatter(Client.nodeIPnPort))));
+            Client.config.setServerURL(new URL(Client.formatAddress(Client.nodeIPnPort)));
 
             Client.xmlRpcClient.setConfig(Client.config);
             params.removeAllElements();

@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.net.URL;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -11,11 +10,12 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 
 
 public class Client {
+	
 	public enum State {
-		FREE, REQUESTED, USING
+		FREE, REQUESTED, USING //States for RA
 	};
 	
-	public final long EXECUTION_TIME = 20000;
+	public final long EXECUTION_TIME = 10000; //Loop Execution time 
 	
 	public static XmlRpcClient xmlRpcClient;
 	public static XmlRpcClientConfigImpl config;
@@ -30,6 +30,7 @@ public class Client {
 		init();
 	}
 
+	//Basic setup of client data. (IP, RPC)
 	public void init(){
 		try{
 			System.out.println("Client data initializing...");
@@ -45,6 +46,7 @@ public class Client {
 	}
 
 	
+	//function for joining the network. The new node IP is propagated through the network to all nodes
 	public void join(String newNodeIP){
 		
 		if(serverURLs.size() > 1){
@@ -54,23 +56,22 @@ public class Client {
 		}else{
 			try{
 				
-				config.setServerURL(new URL(getFullAddress(urlFormatter(newNodeIP))));
+				config.setServerURL(new URL(formatAddress(newNodeIP)));
 				xmlRpcClient.setConfig(config);
 				params.removeAllElements();
 				params.add(nodeIPnPort);
 				try{
-					System.err.println("[Client] NEW NODE JOINING: "+newNodeIP);
 					
 					Object[] result  = (Object[]) xmlRpcClient.execute("Node.join", params);
 					for (Object obj : result){
 						String temp = (String) obj;
-						if(!temp.equals(urlFormatter(nodeIPnPort)) && Server.connectedNodes.add(temp)){
-							serverURLs.add(new URL(getFullAddress(urlFormatter(temp))));
+						if(!temp.equals(formatAddress(nodeIPnPort)) && Server.connectedNodes.add(temp)){
+							serverURLs.add(new URL(formatAddress(temp)));
 						}
 					}
 					System.out.println("[Client] Connected !");
 					
-					//Inform other nodes about a new member of the network
+					//Notify other nodes about a new member of the network
 					for(int i=0; i<serverURLs.size(); i++){
 						config.setServerURL(serverURLs.get(i));
 						xmlRpcClient.setConfig(config);
@@ -88,14 +89,13 @@ public class Client {
 		}
 	}
 	
+	//function for leaving the network. Notifying other nodes and updating all lists.
 	public void signOff() throws XmlRpcException, MalformedURLException{
 		//Notify other nodes about leaving the network
 		if(serverURLs.size() > 1){
-			//URL[] urlArr = new URL[serverURLs.size()];
-			//urlArr = serverURLs.toArray(urlArr);
 			
 			for (URL url : serverURLs) {
-				if(url.toString().compareTo(getFullAddress(nodeIPnPort)) != 0){
+				if(url.toString().compareTo(formatAddress(nodeIPnPort)) != 0){
 					config.setServerURL(url);
 					xmlRpcClient.setConfig(config);
 					params.removeAllElements();
@@ -105,25 +105,24 @@ public class Client {
 					}
 				}
 			}
-			//Probably optimize those straight forward commands 
 			serverURLs.clear();
-			serverURLs.add(new URL(getFullAddress(urlFormatter(nodeIPnPort))));
+			serverURLs.add(new URL(formatAddress(nodeIPnPort)));
 			Server.connectedNodes.clear();
 			Server.connectedNodes.add(nodeIPnPort);
 			Server.host = "none";
-			//TODO cleanup
 			System.out.println("[Client] Signed off!");
 		}else{
 			System.err.println("[Client] You are not connected to a network");
 		}
 	}
 
+	//function start the Bully algorithms Master Node election
 	public void startElection() throws XmlRpcException, MalformedURLException {
 		if(!(serverURLs.size() > 1)) {
 			System.err.println("[Client] You are not connected to a network");
 		}
 		else {
-			config.setServerURL(new URL(getFullAddress(urlFormatter(nodeIPnPort))));
+			config.setServerURL(new URL(formatAddress(nodeIPnPort)));
 			xmlRpcClient.setConfig(config);
 			params.removeAllElements();
 			xmlRpcClient.execute("Node.startElection", params);
@@ -176,8 +175,7 @@ public class Client {
 	
 	public static void listOfNodes() {
 		if(serverURLs.size() > 0){
-			System.out.println("[Client] There are " + serverURLs.size()
-					+ " network members:");
+			System.out.println("[Client] There are " + serverURLs.size()+ " network members:");
 			for (URL url : serverURLs) {
 				System.out.println(url);
 			}
@@ -186,17 +184,12 @@ public class Client {
 		}
 	}
 	
-	public static String getFullAddress(String address){
-		if (!address.contains("http://"))
-			address = "http://" + address;
-		if (!address.contains("/xmlrpc"))
-			address = address + "/xmlrpc";
+	public static String formatAddress(String address){
+		if (!address.contains("http://")) address = "http://" + address;
+		if (!address.contains("/xmlrpc")) address += "/xmlrpc";
 		return address;
 	}
-	
-	public static String urlFormatter(String ip) {
-		return "http://"+ip+"/xmlrpc";
-	}
+
 	
 	/**
 	 * inner class just used by the client to tell every node to start the concatenation process
@@ -205,6 +198,8 @@ public class Client {
 
 		private URL serverURL;
 		private Vector<Object> params = new Vector<>();
+		private XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+		private XmlRpcClient xmlRpcClient = new XmlRpcClient();
 
 		public ConcatBroadcaster(URL serverURL) {
 			this.serverURL = serverURL;
@@ -212,10 +207,14 @@ public class Client {
 		@Override
 		public void run() {
 			params.removeAllElements();
-			config.setServerURL(serverURL);
-			xmlRpcClient.setConfig(config);
+			int xmlrpcConnTimeout = 10000; // Connection timeout
+			int xmlrpcReplyTimeOut = 60000; // Reply timeout
+			this.config.setServerURL(serverURL);
+			this.config.setConnectionTimeout(xmlrpcConnTimeout);
+			this.config.setReplyTimeout(xmlrpcReplyTimeOut);
+			this.xmlRpcClient.setConfig(config);
 			try {
-				xmlRpcClient.execute("Node.startConcatProcess", params);
+				this.xmlRpcClient.execute("Node.startConcatProcess", params);
 			} catch (XmlRpcException e) {
 				System.err.println("[ConcatBroadcaster] Node " + serverURL + " does not respond");
 				e.printStackTrace();

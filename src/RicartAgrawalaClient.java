@@ -1,32 +1,43 @@
+import java.net.URL;
+import java.util.LinkedList;
+import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class RicartAgrawalaClient extends Client{
+public class RicartAgrawalaClient extends Client implements Runnable{
 	
 	int minWaitRange = 1000;
 	int maxWaitRange = 3000;
 
 	public static State state;
-	long startTime;
+	private long startTime;
+	public static int timeStamp;
+	public static int nodeID;
+	private Vector<Object> params = new Vector<Object>();
 	
 	Clock clockTS = RicartAgrawalaServer.clockTS;
 	WordConcatenation wordConcat = new WordConcatenation();
 
-	public static ReentrantLock lock = new ReentrantLock();
+	public static ReentrantLock lock = new ReentrantLock(true);
+	public static Condition reqBroadcaster = lock.newCondition();
+
+	
 	ExecutorService executor = Executors.newCachedThreadPool();
+	Vector<RARequest> requestSenders = new Vector<RARequest>();
+	LinkedList<Future<Boolean>> permits = new LinkedList<Future<Boolean>>();
 
 
 	public RicartAgrawalaClient() {
-		System.out.println("RA Client starting...");
+		System.out.println("[RA Client] Initializing ...");
 		lock.lock();
 		try{
 			state = State.FREE;
-			//request = new Request();
 		} finally {
 			lock.unlock();
 		}
-		
 	}
 	
 	public void accessingCriticalSection(){
@@ -34,15 +45,19 @@ public class RicartAgrawalaClient extends Client{
 		lock.lock();
 		try{
 			clockTS.clockTick();
-			//request.modify(clockTS.getClockVal());
 			state = State.REQUESTED;
+			updateTimeStamp(clockTS.getClockVal());
 		} finally {
 			lock.unlock();
 		}
 
 		//Sending requests and waiting for responses
-		//requestSenders.forEach(x -> oKs.add(executor.submit(x)));
-
+		System.out.println("RequestSenders size: "+requestSenders.size());
+		for (RARequest x : requestSenders) {
+		    permits.add(executor.submit(x));
+		}
+		
+		permits.clear();
 		lock.lock();
 		try {
 			state = State.FREE;
@@ -56,32 +71,59 @@ public class RicartAgrawalaClient extends Client{
 		lock.lock();
 		try{
 			state = State.FREE;
-			//condition.signalAll() ???
+			reqBroadcaster.signalAll();
 		} finally {
 			lock.unlock();
 		}
 	}
+	
 
-
-	//When and where is this method called?
-	public void magicLoop(){
-		startTime = System.currentTimeMillis();
-		while(EXECUTION_TIME > System.currentTimeMillis() - startTime){
-
-			int randPeriod = (int) (Math.random() * (maxWaitRange - minWaitRange)) + minWaitRange;
-			try {
-				Thread.sleep(randPeriod);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+	public void startConcatProcess(){
+		if(serverURLs.size() > 1){
+			
+			for(URL url : serverURLs){
+				requestSenders.add(new RARequest(url));
 			}
-			accessingCriticalSection();
-			//Entering CS
-			//params.removeAllElements();
-			//this.runOverRpc("Node.", params);
-			releaseCriticalSection();
-		}
-		stopOperations();
+			
+			startTime = System.currentTimeMillis();
+			System.out.println("[RA Client] Concatenation process started.");
+			while(EXECUTION_TIME > System.currentTimeMillis() - startTime){
+
+				int randPeriod = (int) (Math.random() * (maxWaitRange - minWaitRange)) + minWaitRange;
+				try {
+					Thread.sleep(randPeriod);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				accessingCriticalSection();
+				//wordConcat.concatString();
+				releaseCriticalSection();
+			}
+			System.out.println("Stopped. Final String: ");
+		} else {
+			System.err.println("[Client] You are not connected to a network");
+		}	
 	}
 
+	public Vector<Object> getParams(){
+		params.removeAllElements();
+		params.add(timeStamp);
+		params.add(nodeID);
+		return params;
+	}
+	
+	public static int getTimeStampID(){
+		return timeStamp*10+nodeID;
+	}
+	
+	public void updateTimeStamp(int newTS){
+		this.timeStamp = newTS;
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
