@@ -78,7 +78,7 @@ public class WordConcatenation {
             System.out.println("[WordConcat] The host strong does not contain " + addedWord);
             return false;
         }
-        System.out.println("[WordConcat] concatenation complete");
+        System.out.println("[WordConcat] concatenation complete. Result: " + hostString);
         return true;
     }
 

@@ -10,7 +10,7 @@ public class RicartAgrawalaServer extends Server {
 	}
 	
 	public boolean receiveRequest(int TS, int nodeID) throws InterruptedException{
-		System.out.println("Request received from node: "+nodeID+" with TimeStamp: "+TS);
+		System.out.println("Request received from node with TimeStamp: "+TS);
 		clockTS.adjustClockVal(TS);
 		while(true){
 			RicartAgrawalaClient.lock.lock();
@@ -24,7 +24,6 @@ public class RicartAgrawalaServer extends Server {
 				RicartAgrawalaClient.lock.unlock();
 			}
 		}
-		System.out.println("Sending OK!");
 		return true;
 	}
 	
@@ -37,11 +36,7 @@ public class RicartAgrawalaServer extends Server {
 			k++;
 		}
 	}
-	
-	public boolean startRAConcat(){
-		System.out.println("[RA Server] Concat process started on node: "+RicartAgrawalaClient.nodeID);
-		return true;
-	}
+
 	
 	public boolean checkState(int TS, int nodeID){
 		return (RicartAgrawalaClient.state == Client.State.USING) || ((RicartAgrawalaClient.state == Client.State.REQUESTED)  && (RicartAgrawalaClient.getTimeStampID() < (TS * 10 + nodeID))) ? true : false; 		
