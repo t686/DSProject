@@ -45,7 +45,7 @@ public class RicartAgrawalaClient extends Client {
 	}
 	
 	public void accessingCriticalSection(){
-		System.out.println("Accessing the Critical Section");
+		System.out.println("Accessing the Critical Section on node :"+nodeIPnPort);
 		lock.lock();
 		try{
 			clockTS.clockTick();
@@ -56,7 +56,7 @@ public class RicartAgrawalaClient extends Client {
 		}
 
 		//Sending requests and waiting for responses
-		System.out.println("RequestSenders size: "+requestSenders.size());
+		//System.out.println("RequestSenders size: "+requestSenders.size());
 		//for (RARequest x : requestSenders) {
 		//    permits.add(executor.submit(x));
 		//}
@@ -71,7 +71,7 @@ public class RicartAgrawalaClient extends Client {
 	}
 
 	public void releaseCriticalSection(){
-		System.out.println("Releasing the Critical Section");
+		System.out.println("Releasing the Critical Section on node :"+nodeIPnPort);
 		lock.lock();
 		try{
 			state = State.FREE;
@@ -85,14 +85,9 @@ public class RicartAgrawalaClient extends Client {
 	public void startConcatProcess(){
 		if(serverURLs.size() > 1){
 			
-			for(URL url : serverURLs){
-				//requestSenders.add(new RARequest(url));
-				new Thread(new runConcatBroadcast(url)).start();
-			}
 			System.out.println("[RA Client] Concatenation process started.");
-			
-			//In case of calling the startRAConcat from Server probably move this code to RAServer ?
-			/*startTime = System.currentTimeMillis();
+				
+			startTime = System.currentTimeMillis();
 			
 			while(EXECUTION_TIME > System.currentTimeMillis() - startTime){
 
@@ -103,21 +98,16 @@ public class RicartAgrawalaClient extends Client {
 					e.printStackTrace();
 				}
 				accessingCriticalSection();
-				
+				for(URL url : serverURLs){
+					new Thread(new runConcatBroadcast(url)).start();
+				}
+				//Additionally trigger the WordConcat method
 				releaseCriticalSection();
 			}
-			*/
-			System.out.println("Stopped. Final String: ");
+			System.out.println("[RA Client] Concatenation process finished.");
 		} else {
-			System.err.println("[Client] You are not connected to a network");
+			System.err.println("[RA Client] You are not connected to a network");
 		}	
-	}
-
-	public Vector<Object> getParams(){
-		params.removeAllElements();
-		params.add(timeStamp);
-		params.add(nodeID);
-		return params;
 	}
 	
 	public static int getTimeStampID(){
@@ -144,6 +134,8 @@ public class RicartAgrawalaClient extends Client {
 		@Override
 		public void run() {
 			params.removeAllElements();
+			params.add(timeStamp);
+			params.add(nodeID);
 			int xmlrpcConnTimeout = 10000; // Connection timeout
 			int xmlrpcReplyTimeOut = 60000; // Reply timeout
 			config.setServerURL(serverURL);
@@ -151,7 +143,7 @@ public class RicartAgrawalaClient extends Client {
 			config.setReplyTimeout(xmlrpcReplyTimeOut);
 			xmlRpcClient.setConfig(config);
 			try {
-				xmlRpcClient.execute("RANode.startRAConcat", params);
+				xmlRpcClient.execute("RANode.receiveRequest", params);
 			} catch (XmlRpcException e) {
 				System.err.println("[RA Conccat Broadcast] Node " + serverURL + " does not respond");
 				e.printStackTrace();
