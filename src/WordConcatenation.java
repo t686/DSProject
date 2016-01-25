@@ -24,7 +24,6 @@ public class WordConcatenation {
     private XmlRpcClientConfigImpl config;
 
     public WordConcatenation() {
-        System.out.println("OH SHIT!!!");
         addedStrings = new ArrayList<>();
         this.config = new XmlRpcClientConfigImpl();
         this.xmlRpcClient = new XmlRpcClient();
