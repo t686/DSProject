@@ -24,6 +24,7 @@ public class WordConcatenation {
     private XmlRpcClientConfigImpl config;
 
     public WordConcatenation() {
+        System.out.println("OH SHIT!!!");
         addedStrings = new ArrayList<>();
         this.config = new XmlRpcClientConfigImpl();
         this.xmlRpcClient = new XmlRpcClient();
@@ -45,7 +46,9 @@ public class WordConcatenation {
             try {
                 System.out.println("[WordConcat] Requesting host string");
                 String hostString = (String) this.xmlRpcClient.execute("Node.rpcRequestString", params);
-                hostString.concat(rndString);
+                hostString = hostString.concat(rndString);
+                addedStrings.add(rndString);
+
                 params.removeAllElements();
                 params.add(hostString);
                 System.out.println("[WordConcat] Sending new string to host");
@@ -85,6 +88,7 @@ public class WordConcatenation {
      *  Method to clear the list of added strings for the next process
      */
     public void clearList() {
+        System.out.println("addedStrings cleared");
         addedStrings.clear();
     }
 

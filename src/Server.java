@@ -25,6 +25,7 @@ public class Server{
 	public static String host = "none";
 	public static String hostString = "";
 	public static ArrayList<String> rndWordSet = new ArrayList<>();
+	public static ArrayList<String> addedWords = new ArrayList<>();
 
 	//Using HashSet we eliminate the probability of identical elements on a data structure level
 	public static HashSet<String> connectedNodes = new HashSet<>(); //List of active Nodes IPs
@@ -250,6 +251,7 @@ public class Server{
 
 		if (!isRunning) {
 			startTimer();
+			isRunning = true;
 		}
 		if (checkElapsedTime()) {
 			stoppedRequester++;
