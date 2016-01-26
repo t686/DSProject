@@ -8,8 +8,10 @@ import org.apache.xmlrpc.webserver.WebServer;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.URL;
@@ -345,10 +347,7 @@ public class Server{
 		throw new IllegalStateException("Could not find a free TCP/IP port to start HTTP Server on");
 	}
 	private boolean loadFile() {
-		String tempPath = (Server.class.getResource("Files/wordList.txt")).toString();
-		String filePath = tempPath.substring(tempPath.indexOf(":")+1);
-		File file = new File(filePath);
-		try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+		try(BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("Files/wordList.txt")))) {
 			for(String line; (line = br.readLine()) != null; ) {
 				rndWordSet.add(line);
 			}
