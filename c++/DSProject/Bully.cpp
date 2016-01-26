@@ -1,7 +1,7 @@
 #include "Bully.h"
 
 Bully::Bully() : QObject(){
-
+	
 }
 
 bool Bully::startElection(int ownPort, QList<QVariant> connectedNodes) {
@@ -33,17 +33,18 @@ QString Bully::messageNode(int ownPort, QString node) {
 
 	QList<QVariant> params;
     std::cout << std::endl << "sending election message to: " << node.toStdString();
-    glbClient::client->setHostAndPort(Client::getFullAddress(Client::urlFormatter(node)));
+	Client* xmlRpcClient = new Client();
+    xmlRpcClient->setHostAndPort(node);
 	params.append(ownPort);
 
-    glbClient::client->execute("rpcElectionRequest", params);
+    xmlRpcClient->execute("rpcElectionRequest", params);
 
-    while (glbClient::client->isWaiting())
+    while (xmlRpcClient->isWaiting())
         QCoreApplication::processEvents();
 
-    QString response = glbClient::client->response().toString();
+    QString response = xmlRpcClient->response().toString();
 
-	if (response.isEmpty()) {
+	if (response.isEmpty() || response.isNull()) {
 		return "Lost";
 	}
 
@@ -53,14 +54,15 @@ QString Bully::messageNode(int ownPort, QString node) {
 bool Bully::signOffDisconnectedNode(QString node) {
 	QList<QVariant> params;
 
-    glbClient::client->setHostAndPort(Client::getFullAddress(Client::getFullAddress(Client::urlFormatter(Client::nodeIPnPort))));
+	Client* xmlRpcClient = new Client();
+    xmlRpcClient->setHostAndPort(Client::nodeIPnPort);
 	params.append(node);
 
-    glbClient::client->execute("signOff", params);
-    while (glbClient::client->isWaiting())
+    xmlRpcClient->execute("signOff", params);
+    while (xmlRpcClient->isWaiting())
         QCoreApplication::processEvents();
 
-    return glbClient::client->response().toBool();
+    return xmlRpcClient->response().toBool();
 }
 
 int Bully::extractPortFromIPnPort(QString nodeIPnPort) {

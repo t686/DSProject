@@ -9,3 +9,7 @@ bin/RicartAgrawalaClient.class
 bin/RicartAgrawalaServer.class
 bin/Server$CheckConcatBroadcaster.class
 bin/Server$XmlRpcConnector.class
+solution1
+solution2
+*.zip
+*.class

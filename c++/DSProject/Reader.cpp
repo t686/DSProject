@@ -1,16 +1,16 @@
 #include "Reader.h"
 
-Reader::Reader() : QThread(){
+Reader::Reader(Client* xmlRpcClient) : QThread(){
 
-    connect(this,SIGNAL(join(QString)),glbClient::client,SLOT(join(QString)),Qt::UniqueConnection);
-    connect(this,SIGNAL(signOff()),glbClient::client,SLOT(signOff()),Qt::UniqueConnection);
-    connect(this,SIGNAL(startElection()),glbClient::client,SLOT(startElection()),Qt::UniqueConnection);
-    connect(this,SIGNAL(startConcatProcess()),glbClient::client,SLOT(startConcatProcess()),Qt::UniqueConnection);
-    connect(this,SIGNAL(stopOperations()),glbClient::client,SLOT(stopOperations()),Qt::UniqueConnection);
-    connect(this,SIGNAL(runOverRpc(QString,QList<QVariant>)),glbClient::client,SLOT(runOverRpc(QString,QList<QVariant>)),Qt::UniqueConnection);
-    connect(this,SIGNAL(showAllLists()),glbClient::client,SLOT(showAllLists()),Qt::UniqueConnection);
-	connect(this, SIGNAL(echo(QString, QString)), glbClient::client, SLOT(echo(QString, QString)), Qt::UniqueConnection);
-	connect(glbClient::client, SIGNAL(finishedTask()), this, SLOT(clientFinished()), Qt::UniqueConnection);
+    connect(this,SIGNAL(join(QString)),xmlRpcClient,SLOT(join(QString)),Qt::UniqueConnection);
+    connect(this,SIGNAL(signOff()),xmlRpcClient,SLOT(signOff()),Qt::UniqueConnection);
+    connect(this,SIGNAL(startElection()),xmlRpcClient,SLOT(startElection()),Qt::UniqueConnection);
+    connect(this,SIGNAL(startConcatProcess()),xmlRpcClient,SLOT(startConcatProcess()),Qt::UniqueConnection);
+    connect(this,SIGNAL(stopOperations()),xmlRpcClient,SLOT(stopOperations()),Qt::UniqueConnection);
+    connect(this,SIGNAL(runOverRpc(QString,QList<QVariant>)),xmlRpcClient,SLOT(runOverRpc(QString,QList<QVariant>)),Qt::UniqueConnection);
+    connect(this,SIGNAL(showAllLists()),xmlRpcClient,SLOT(showAllLists()),Qt::UniqueConnection);
+	connect(this, SIGNAL(echo(QString, QString)), xmlRpcClient, SLOT(echo(QString, QString)), Qt::UniqueConnection);
+	connect(xmlRpcClient, SIGNAL(finishedTask()), this, SLOT(clientFinished()), Qt::UniqueConnection);
 
 	busy = false;
 }
@@ -51,7 +51,7 @@ void Reader::selectedOption(QString option){
         emit startElection();
 	}
 	else if (option == "host"){
-		std::cout << std::endl << glb::host.toStdString() << " is the current host";
+		std::cout << std::endl << glb::port << " is the current host";
 		busy = false;
 	}
 	else if (option == "list"){

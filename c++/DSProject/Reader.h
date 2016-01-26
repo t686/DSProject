@@ -3,14 +3,14 @@
 
 #include <QThread>
 #include "globals.h"
-#include "globalclient.h"
+#include "Client.h"
 
 class Reader : public QThread{
 
 	Q_OBJECT
 
 public:
-    Reader();
+    Reader(Client* xmlRpcClient);
 
 	void run() Q_DECL_OVERRIDE;
 

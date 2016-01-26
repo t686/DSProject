@@ -37,11 +37,11 @@ public:
 
     void init();
     static void listOfNodes();
-    static QString getFullAddress(QString address);
-	static QString urlFormatter(QString ip);
 
 	void setHostAndPort(QString host_port);
 	void setHostAndPort(QString host, int port);
+
+	QString getHostAndPort();
 
 signals:
 	void finishedTask();
@@ -55,6 +55,17 @@ public slots:
     void runOverRpc(QString functionName, QList<QVariant> in_params);
     void showAllLists();
     void echo(QString newNodeIP,QString echoStr);
+};
+
+class ConcatBroadcaster : public QThread{
+
+public:
+	ConcatBroadcaster(QString serverURL);
+
+	void run() Q_DECL_OVERRIDE;
+
+private:
+	QString serverURL;
 };
 
 #endif //CLIENT
