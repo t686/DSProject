@@ -9,7 +9,7 @@
 #include <QCoreApplication>
 #include <QThread>
 #include "globals.h"
-#include "globalclient.h"
+#include "Client.h"
 
 class Bully : public QObject{
 public:
@@ -21,6 +21,7 @@ private:
     static QString messageNode(int ownPort, QString node);
 	static bool signOffDisconnectedNode(QString node);
 	static int extractPortFromIPnPort(QString nodeIPnPort);
+
 };
 
 #endif //BULLY

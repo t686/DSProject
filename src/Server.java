@@ -193,7 +193,7 @@ public class Server{
 
 		while (keepGoing) {
 			try {
-				Thread.sleep(ThreadLocalRandom.current().nextInt(2000, 4000 + 1));
+				Thread.sleep(ThreadLocalRandom.current().nextInt(500, 2000 + 1));
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 				Thread.currentThread().interrupt();
@@ -364,7 +364,7 @@ public class Server{
 	}
 	private boolean checkElapsedTime() {
 		double elapsedTime = (System.nanoTime() - startTime) / 1000000000.0;
-		return (elapsedTime > 20);
+		return (elapsedTime > 6);
 
 	}
 	private void lockCritSection() {

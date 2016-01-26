@@ -8,11 +8,9 @@
 #include <iostream>
 #include <QThread>
 #include <ctime>
-#include <iostream>
-#include <fstream>
 #include "qtxmlrpc.h"
 #include "globals.h"
-#include "globalclient.h"
+#include "Client.h"
 #include "WordConcatenation.h"
 #include "Bully.h"
 
@@ -27,25 +25,26 @@ public:
 
 	static int stoppedNodes;
 
+	Client* getClient();
+
 	public slots:
 		QVariant join(const QVariant &newNodeIP);
 		QVariant signOff(const QVariant &nodeIP);
-		QVariant startElection(const QVariant &dummy);
+		QVariant startElection();
 		QVariant rpcElectionRequest(const QVariant &requester);
 		QVariant hostBroadcast(const QVariant &newHost);
-		QVariant startConcatProcess(const QVariant &dummy);
+		QVariant startConcatProcess();
 		QVariant rpcLifeSign(const QVariant &requester);
-		QVariant checkConcatResult(const QVariant &dummy);
+		QVariant checkConcatResult();
 		QVariant echo(const QVariant& e) { return e; }
-		QVariant rpcRequestString(const QVariant &dummy);
+		QVariant rpcRequestString();
 		QVariant rpcOverrideString(const QVariant &newString);
 
 protected:
-    std::vector<QString> rndWordSet;
 	QString hostString;
 
 	WordConcatenation* concatObject;
-    std::vector<QString> requestQueue;
+	QStringList requestQueue;
 	bool critSectionBusy;
 	bool isRunning;
 	clock_t startTime;
@@ -53,11 +52,12 @@ protected:
 
 	void broadcastIamHost();
 	bool concatLoop();
-	bool loadFile();
 	bool checkElapsedTime();
 	void lockCritSection();
 	void unlockCritSection();
 	void broadCastCheckConcat();
+
+	Client* xmlRpcClient;
 };
 
 #endif //SERVER

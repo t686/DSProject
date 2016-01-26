@@ -61,9 +61,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_Client.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="glbclient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="globals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -88,9 +85,6 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="Client.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="globalclient.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="globals.h">

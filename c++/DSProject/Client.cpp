@@ -16,7 +16,7 @@ void Client::init(){
 	std::cout << std::endl << "Client data initializing...";
 
 	foreach(const QHostAddress &address,QNetworkInterface::allAddresses()) {
-		if (address.protocol() == QAbstractSocket::IPv4Protocol && (address.toString().contains("192.") || address.toString().contains("127."))){
+		if (address.protocol() == QAbstractSocket::IPv4Protocol){
             nodeIp = address.toString();
         }
 	}
@@ -27,8 +27,6 @@ void Client::init(){
 
 void Client::join(QString newNodeIP){
 
-    setHostAndPort(newNodeIP);
-
 	if (serverURLs.size() > 1){
         std::cout << std::endl << "You are a part of an existing network!";
 	}
@@ -36,7 +34,7 @@ void Client::join(QString newNodeIP){
         std::cout << std::endl << "You can't connect to yourself!";
     }
     else{
-		setHostAndPort(getFullAddress(urlFormatter(newNodeIP)));
+		setHostAndPort(newNodeIP);
         params.clear();
 		params.append(nodeIPnPort);
 			
@@ -50,9 +48,9 @@ void Client::join(QString newNodeIP){
         QStringList result = response().toStringList();
         if (result.size() > 0){
             foreach(QString str,result){
-                if (str != urlFormatter(nodeIPnPort) && !glb::connectedNodes.contains(str)){
+                if (str != nodeIPnPort && !glb::connectedNodes.contains(str)){
                     glb::connectedNodes.append(str);
-                    serverURLs.push_back(getFullAddress(urlFormatter(str)));
+                    serverURLs.push_back(str);
                 }
             }
             std::cout << std::endl << "[Client] Connected !" << std::endl;
@@ -78,7 +76,7 @@ void Client::signOff(){
 	if (serverURLs.size() > 1){
 
 		foreach (QString url,serverURLs) {
-			if (url == getFullAddress(nodeIPnPort)){
+			if (url != nodeIPnPort){
 				setHostAndPort(url);
 				params.clear();
 				params.append(nodeIPnPort);
@@ -86,33 +84,32 @@ void Client::signOff(){
                 while (isWaiting())
                     QCoreApplication::processEvents();
 				if (!response().toBool()) {
-                    std::cout << std::endl << "[Client] Failed to signOff from " << url.toStdString();
+					std::cout << std::endl << "[Client] Failed to signOff from " << url.toStdString() << std::endl;
 				}
 			}
 		}
 		//Probably optimize those straight forward commands 
 		serverURLs.clear();
-		serverURLs.push_back(getFullAddress(urlFormatter(nodeIPnPort)));
+		serverURLs.push_back(nodeIPnPort);
 		glb::connectedNodes.clear();
 		glb::connectedNodes.append(nodeIPnPort);
 		glb::host = "none";
 		//TODO cleanup
-		std::cout << std::endl << "[Client] Signed off!";
+		std::cout << std::endl << "[Client] Signed off!" << std::endl;
 	}
 	else{
-		std::cout << std::endl << "[Client] You are not connected to a network";
+		std::cout << std::endl << "[Client] You are not connected to a network" << std::endl;
 	}
 	emit finishedTask();
 }
 
 void Client::startElection(){
 	if (!(serverURLs.size() > 1)) {
-		std::cout << std::endl << "[Client] You are not connected to a network";
+		std::cout << std::endl << "[Client] You are not connected to a network" << std::endl;
 	}
 	else {
-        setHostAndPort(getFullAddress(urlFormatter(nodeIPnPort)));
+        setHostAndPort(nodeIPnPort);
 		params.clear();
-		params.append(QVariant());
         std::cout << std::endl << "starting election on: " << nodeIPnPort.toStdString() << std::endl;
 		execute("startElection", params);
 	}
@@ -121,14 +118,17 @@ void Client::startElection(){
 
 void Client::startConcatProcess(){
 	if (!(serverURLs.size() > 1)){
-        std::cout << std::endl << "[Client] You are not connected to a network";
+		std::cout << std::endl << "[Client] You are not connected to a network" << std::endl;
 	}
     else{
         foreach(QString url,serverURLs) {
-            std::cout << std::endl << "Concat started for node: " << url.toStdString();
-            QList<QVariant> tmpParams;
-            tmpParams.append(url);
-            execute("startConcatProcess", tmpParams);
+			std::cout << std::endl << "Concat started for node: " << url.toStdString() << std::endl;
+			ConcatBroadcaster* broadcaster = new ConcatBroadcaster(url);
+			broadcaster->start();
+			/*QList<QVariant> tmpParams;
+			Client* xmlRpcClient = new Client();
+			xmlRpcClient->setHostAndPort(url);
+			xmlRpcClient->execute("startConcatProcess", tmpParams);*/
         }
     }
 	emit finishedTask();
@@ -145,7 +145,7 @@ void Client::runOverRpc(QString functionName, QList<QVariant> in_params){
 
 	foreach(QString url,serverURLs){
 		setHostAndPort(url);
-        std::cout << std::endl << "[Client] Running function: " << functionName.toStdString() << " over RPC.";
+		std::cout << std::endl << "[Client] Running function: " << functionName.toStdString() << " over RPC." << std::endl;
 		execute(functionName, in_params);
 	}
 }
@@ -165,20 +165,8 @@ void Client::listOfNodes() {
 		}
 	}
 	else{
-		std::cout << std::endl << "The network is empty!";
+		std::cout << std::endl << "The network is empty!" << std::endl;
 	}
-}
-
-QString Client::getFullAddress(QString address){
-    /*if (!address.contains("http://"))
-		address = "http://" + address;
-    /*if (!address.contains("/xmlrpc"))
-        address = address + "/xmlrpc";*/
-	return address;
-}
-
-QString Client::urlFormatter(QString ip) {
-    return ip;//"http://" + ip;// + "/xmlrpc";
 }
 
 void Client::setHost(QString host){
@@ -193,6 +181,10 @@ void Client::setHostAndPort(QString host_port){
 void Client::setHostAndPort(QString host, int port){
 	dstHost = host;
 	dstPort = port;
+}
+
+QString Client::getHostAndPort(){
+	return dstHost + QString(":%1").arg(dstPort);
 }
 
 bool Client::isWaiting(){
@@ -210,4 +202,16 @@ void Client::echo(QString newNodeIP, QString echoStr){
 
 	std::cout << std::endl << std::endl << "echo recieved: " << response().toString().toStdString() << std::endl << std::endl;
 	emit finishedTask();
+}
+
+ConcatBroadcaster::ConcatBroadcaster(QString url) {
+	serverURL = url;
+}
+void ConcatBroadcaster::run(){
+	QList<QVariant> tmpParams;
+	Client* xmlRpcClient = new Client();
+	xmlRpcClient->setHostAndPort(serverURL);
+	xmlRpcClient->execute("startConcatProcess", tmpParams);
+	while (xmlRpcClient->isWaiting())
+		QCoreApplication::processEvents();
 }

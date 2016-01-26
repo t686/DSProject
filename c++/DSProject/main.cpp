@@ -1,19 +1,41 @@
 
-#include <QtCore/QCoreApplication>
+#include <QCoreApplication>
 #include <iostream>
 #include <stdlib.h>
 #include <boost/filesystem.hpp>
 #include "globals.h"
-#include "globalclient.h"
+#include "Client.h"
 #include "Reader.h"
 #include "Server.h"
 
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg){
+	QByteArray localMsg = msg.toLocal8Bit();
+	switch (type) {
+	case QtDebugMsg:
+		fprintf(stderr, "\n***\nDebug: %s (%s:%u, %s)\n***\n", localMsg.constData(), context.file, context.line, context.function);
+		break;
+	case QtInfoMsg:
+		fprintf(stderr, "\n***\nInfo: %s (%s:%u, %s)\n***\n", localMsg.constData(), context.file, context.line, context.function);
+		break;
+	case QtWarningMsg:
+		fprintf(stderr, "\n***\nWarning: %s (%s:%u, %s)\n***\n", localMsg.constData(), context.file, context.line, context.function);
+		break;
+	case QtCriticalMsg:
+		//Filter out multiple protocol start... its a library bug
+		if (!QString::fromStdString(localMsg.toStdString()).contains("Multiple proto"))
+			fprintf(stderr, "\n***\nCritical: %s (%s:%u, %s)\n***\n", localMsg.constData(), context.file, context.line, context.function);
+		break;
+	case QtFatalMsg:
+		fprintf(stderr, "\n***\nFatal: %s (%s:%u, %s)\n***\n", localMsg.constData(), context.file, context.line, context.function);
+		abort();
+	}
+}
+
 int main(int argc, char *argv[]){
+	qInstallMessageHandler(myMessageOutput);
     QCoreApplication a(argc, argv);    
 
-    glb::mainThread = a.thread();
-	glbClient::client->setHostAndPort(glb::host, glb::port);
-	glbClient::client->init();
+    glb::mainThread = a.thread();	
 
     std::cout << std::endl << "Oi, mate!";
 
@@ -55,8 +77,8 @@ int main(int argc, char *argv[]){
         Server* server = new Server();
         server->init();
 
-        Reader* reader = new Reader();
-        reader->start();
+		Reader* reader = new Reader(server->getClient());
+		reader->start();
     }
 
     return a.exec();

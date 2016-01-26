@@ -4,8 +4,9 @@
 #include <QString>
 #include <QThread>
 #include <vector>
+#include <fstream>
 #include "globals.h"
-#include "globalclient.h"
+#include "Client.h"
 
 class WordConcatenation : public QObject{
 
@@ -15,14 +16,16 @@ public:
 	bool concatString();
 	bool checkAddedWords();
 	void clearList();
-    std::vector<QString> getAddedStrings();
-    void setWordSet(std::vector<QString> wordSet);
+	QStringList getAddedStrings();
+	void setWordSet(QStringList);
 
 private:
-    std::vector<QString> rndWordSet;
-    std::vector<QString> addedStrings;
+	QStringList rndWordSet;
+    QStringList addedStrings;
 
 	QString getRndString();
+
+	bool loadFile();
 };
 
 #endif //WORDCONCATENATION
