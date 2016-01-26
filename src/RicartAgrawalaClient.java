@@ -1,9 +1,7 @@
 import java.net.URL;
-import java.util.LinkedList;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -16,28 +14,28 @@ public class RicartAgrawalaClient extends Client {
 	int minWaitRange = 1000;
 	int maxWaitRange = 3000;
 
-	public static State state;
+	public static boolean isRequestingCS;
 	private long startTime;
 	public static int timeStamp;
 	public static int nodeID;
 	private Vector<Object> params = new Vector<Object>();
+	
 	
 	Clock clockTS = RicartAgrawalaServer.clockTS;
 	WordConcatenation concatObject = new WordConcatenation();
 
 	public static ReentrantLock lock = new ReentrantLock(true);
 	public static Condition reqBroadcaster = lock.newCondition();
+	
 
 	
 	ExecutorService executor = Executors.newCachedThreadPool();
-	Vector<RARequest> requestSenders = new Vector<RARequest>();
-
 
 	public RicartAgrawalaClient() {
 		System.out.println("[RA Client] Initializing ...");
 		lock.lock();
 		try{
-			state = State.FREE;
+			isRequestingCS = false;
 		} finally {
 			lock.unlock();
 		}
@@ -47,8 +45,8 @@ public class RicartAgrawalaClient extends Client {
 		System.out.println("Accessing the CS");
 		lock.lock();
 		try{
+			isRequestingCS = true;
 			clockTS.clockTick();
-			state = State.REQUESTED;
 			updateTimeStamp(clockTS.getClockVal());
 		} finally {
 			lock.unlock();
@@ -58,20 +56,13 @@ public class RicartAgrawalaClient extends Client {
 		for(URL url : serverURLs){
 			new Thread(new runConcatBroadcast(url)).start();
 		}
-
-		lock.lock();
-		try {
-			state = State.FREE;
-		} finally {
-			lock.unlock();
-		}
 	}
 
 	public void releaseCriticalSection(){
 		System.out.println("Releasing the CS");
 		lock.lock();
 		try{
-			state = State.FREE;
+			isRequestingCS = false;
 			reqBroadcaster.signalAll();
 		} finally {
 			lock.unlock();
