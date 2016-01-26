@@ -16,7 +16,7 @@ void Client::init(){
 	std::cout << std::endl << "Client data initializing...";
 
 	foreach(const QHostAddress &address,QNetworkInterface::allAddresses()) {
-		if (address.protocol() == QAbstractSocket::IPv4Protocol && (address.toString().contains("192.") || address.toString().contains("127."))){
+		if (address.protocol() == QAbstractSocket::IPv4Protocol){
             nodeIp = address.toString();
         }
 	}

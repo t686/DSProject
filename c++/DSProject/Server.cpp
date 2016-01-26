@@ -5,17 +5,17 @@ int Server::stoppedNodes = 0;
 Server::Server() : XmlRpcServer(){    
 
     listen(QHostAddress::Any, glb::port);
-    registerSlot(this, SLOT(join(const QVariant&)));
-    registerSlot(this, SLOT(signOff(const QVariant&)));
-	registerSlot(this, SLOT(startElection()));
-    registerSlot(this, SLOT(rpcElectionRequest(const QVariant&)));
-    registerSlot(this, SLOT(hostBroadcast(const QVariant&)));
+    registerSlot(this, SLOT(join(const QVariant&)),"/xmlrpc/");
+	registerSlot(this, SLOT(signOff(const QVariant&)), "/xmlrpc/");
+	registerSlot(this, SLOT(startElection()), "/xmlrpc/");
+	registerSlot(this, SLOT(rpcElectionRequest(const QVariant&)), "/xmlrpc/");
+	registerSlot(this, SLOT(hostBroadcast(const QVariant&)), "/xmlrpc/");
 	registerSlot(this, SLOT(startConcatProcess()));
-    registerSlot(this, SLOT(rpcLifeSign(const QVariant&)));
-	registerSlot(this, SLOT(checkConcatResult()));
-	registerSlot(this, SLOT(echo(const QVariant&)));
-	registerSlot(this, SLOT(rpcRequestString()));
-	registerSlot(this, SLOT(rpcOverrideString(const QVariant&)));
+	registerSlot(this, SLOT(rpcLifeSign(const QVariant&)), "/xmlrpc/");
+	registerSlot(this, SLOT(checkConcatResult()), "/xmlrpc/");
+	registerSlot(this, SLOT(echo(const QVariant&)), "/xmlrpc/");
+	registerSlot(this, SLOT(rpcRequestString()), "/xmlrpc/");
+	registerSlot(this, SLOT(rpcOverrideString(const QVariant&)), "/xmlrpc/");
 
 	concatObject = new WordConcatenation();
 
