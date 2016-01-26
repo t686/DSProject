@@ -5,11 +5,15 @@ QString Client::nodeIPnPort = "";
 QStringList Client::serverURLs = QStringList();
 
 Client::Client() : XmlRpcClient("127.0.0.1",0){
-    
+    url.setPath("/xmlrpc");
+    requestTimeout = 100000;
+    connectTimeout = 1200000;
 }
 
-Client::Client(QString host, int port) : XmlRpcClient(host,port){
-	
+Client::Client(QString host, int port) : XmlRpcClient(host, port){
+    url.setPath("/xmlrpc");
+    requestTimeout = 100000;
+    connectTimeout = 1200000;
 }
 
 void Client::init(){
@@ -40,7 +44,7 @@ void Client::join(QString newNodeIP){
 			
         std::cout << std::endl << "[Client] NEW NODE JOINING: " << newNodeIP.toStdString();
 
-		execute("join", params);
+        execute("Node.join", params);
 
         while (isWaiting())
             QCoreApplication::processEvents();
@@ -59,7 +63,7 @@ void Client::join(QString newNodeIP){
             for (int i = 0; i<serverURLs.size(); i++){
 				if (serverURLs[i] != nodeIPnPort && serverURLs[i] != newNodeIP){
 					setHostAndPort(serverURLs[i]);
-					execute("join", params);
+                    execute("Node.join", params);
 				}
             }
             startElection();
@@ -80,7 +84,7 @@ void Client::signOff(){
 				setHostAndPort(url);
 				params.clear();
 				params.append(nodeIPnPort);
-				execute("signOff", params);
+                execute("Node.signOff", params);
                 while (isWaiting())
                     QCoreApplication::processEvents();
 				if (!response().toBool()) {
@@ -111,7 +115,7 @@ void Client::startElection(){
         setHostAndPort(nodeIPnPort);
 		params.clear();
         std::cout << std::endl << "starting election on: " << nodeIPnPort.toStdString() << std::endl;
-		execute("startElection", params);
+        execute("Node.startElection", params);
 	}
 	emit finishedTask();
 }
@@ -128,7 +132,7 @@ void Client::startConcatProcess(){
 			/*QList<QVariant> tmpParams;
 			Client* xmlRpcClient = new Client();
 			xmlRpcClient->setHostAndPort(url);
-			xmlRpcClient->execute("startConcatProcess", tmpParams);*/
+            xmlRpcClient->execute("Node.startConcatProcess", tmpParams);*/
         }
     }
 	emit finishedTask();
@@ -195,7 +199,7 @@ void Client::echo(QString newNodeIP, QString echoStr){
     setHostAndPort(newNodeIP);
     params.clear();
     params.append(echoStr);
-    execute("echo",params);
+    execute("Node.echo",params);
 
     while (isWaiting())
         QCoreApplication::processEvents();
@@ -211,7 +215,8 @@ void ConcatBroadcaster::run(){
 	QList<QVariant> tmpParams;
 	Client* xmlRpcClient = new Client();
 	xmlRpcClient->setHostAndPort(serverURL);
-	xmlRpcClient->execute("startConcatProcess", tmpParams);
-	while (xmlRpcClient->isWaiting())
-		QCoreApplication::processEvents();
+    xmlRpcClient->execute("Node.startConcatProcess", tmpParams);
+
+    while (xmlRpcClient->isWaiting())
+        QCoreApplication::processEvents();
 }

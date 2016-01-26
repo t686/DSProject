@@ -16,17 +16,18 @@ Reader::Reader(Client* xmlRpcClient) : QThread(){
 }
 
 void Reader::run(){
-	//Infinite loop for listening to input characters
+    //Infinite loop for listening to input characters
     std::cout << std::endl << "List of options: join, signoff, start, bully, host, list, echo, exit"<< std::endl;
 	while (true){
-		if (!busy){
+        //if (!busy){
 			std::string str;
 			std::getline(std::cin, str);
 			QString inputText(str.c_str());
 			std::cout << std::endl << "> " << inputText.toStdString();
 			selectedOption(inputText);
-		}
-	}
+        }
+        QCoreApplication::processEvents();
+    //}
 }
 
 void Reader::selectedOption(QString option){

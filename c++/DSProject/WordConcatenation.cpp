@@ -12,7 +12,7 @@ bool WordConcatenation::concatString() {
 	Client* xmlRpcClient = new Client();
 	xmlRpcClient->setHostAndPort(glb::host + QString(":%1").arg(glb::port));
 
-	xmlRpcClient->execute("rpcRequestString", params);
+	xmlRpcClient->execute("Node.rpcRequestString", params);
 
 	while (xmlRpcClient->isWaiting())
         QCoreApplication::processEvents();
@@ -26,7 +26,7 @@ bool WordConcatenation::concatString() {
 
 	Client* xmlRpcClient2 = new Client();
 	xmlRpcClient2->setHostAndPort(glb::host + QString(":%1").arg(glb::port));
-	xmlRpcClient2->execute("rpcOverrideString", params);
+	xmlRpcClient2->execute("Node.rpcOverrideString", params);
 
 	while (xmlRpcClient2->isWaiting())
         QCoreApplication::processEvents();
@@ -39,7 +39,7 @@ bool WordConcatenation::checkAddedWords(){
 
 	Client* xmlRpcClient = new Client();
 	xmlRpcClient->setHostAndPort(glb::host + QString(":%1").arg(glb::port));
-    xmlRpcClient->execute("rpcRequestString", params);
+    xmlRpcClient->execute("Node.rpcRequestString", params);
 
     while (xmlRpcClient->isWaiting())
         QCoreApplication::processEvents();

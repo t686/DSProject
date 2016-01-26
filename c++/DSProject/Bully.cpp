@@ -37,7 +37,7 @@ QString Bully::messageNode(int ownPort, QString node) {
     xmlRpcClient->setHostAndPort(node);
 	params.append(ownPort);
 
-    xmlRpcClient->execute("rpcElectionRequest", params);
+    xmlRpcClient->execute("Node.rpcElectionRequest", params);
 
     while (xmlRpcClient->isWaiting())
         QCoreApplication::processEvents();
@@ -58,7 +58,7 @@ bool Bully::signOffDisconnectedNode(QString node) {
     xmlRpcClient->setHostAndPort(Client::nodeIPnPort);
 	params.append(node);
 
-    xmlRpcClient->execute("signOff", params);
+    xmlRpcClient->execute("Node.signOff", params);
     while (xmlRpcClient->isWaiting())
         QCoreApplication::processEvents();
 

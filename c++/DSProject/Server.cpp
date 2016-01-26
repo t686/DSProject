@@ -2,27 +2,27 @@
 
 int Server::stoppedNodes = 0;
 
-Server::Server() : XmlRpcServer(){    
+Server::Server() : XmlRpcServer(){
 
     listen(QHostAddress::Any, glb::port);
-    registerSlot(this, SLOT(join(const QVariant&)),"/xmlrpc/");
-	registerSlot(this, SLOT(signOff(const QVariant&)), "/xmlrpc/");
-	registerSlot(this, SLOT(startElection()), "/xmlrpc/");
-	registerSlot(this, SLOT(rpcElectionRequest(const QVariant&)), "/xmlrpc/");
-	registerSlot(this, SLOT(hostBroadcast(const QVariant&)), "/xmlrpc/");
-	registerSlot(this, SLOT(startConcatProcess()));
-	registerSlot(this, SLOT(rpcLifeSign(const QVariant&)), "/xmlrpc/");
-	registerSlot(this, SLOT(checkConcatResult()), "/xmlrpc/");
-	registerSlot(this, SLOT(echo(const QVariant&)), "/xmlrpc/");
-	registerSlot(this, SLOT(rpcRequestString()), "/xmlrpc/");
-	registerSlot(this, SLOT(rpcOverrideString(const QVariant&)), "/xmlrpc/");
+    registerSlot(this, SLOT(join(const QVariant&)),"/xmlrpcNode.");
+    registerSlot(this, SLOT(signOff(const QVariant&)), "/xmlrpcNode.");
+    registerSlot(this, SLOT(startElection()), "/xmlrpcNode.");
+    registerSlot(this, SLOT(rpcElectionRequest(const QVariant&)), "/xmlrpcNode.");
+    registerSlot(this, SLOT(hostBroadcast(const QVariant&)), "/xmlrpcNode.");
+    registerSlot(this, SLOT(startConcatProcess()), "/xmlrpcNode.");
+    registerSlot(this, SLOT(rpcLifeSign(const QVariant&)), "/xmlrpcNode.");
+    registerSlot(this, SLOT(checkConcatResult()), "/xmlrpcNode.");
+    registerSlot(this, SLOT(echo(const QVariant&)), "/xmlrpcNode.");
+    registerSlot(this, SLOT(rpcRequestString()), "/xmlrpcNode.");
+    registerSlot(this, SLOT(rpcOverrideString(const QVariant&)), "/xmlrpcNode.");
 
 	concatObject = new WordConcatenation();
 
 	critSectionBusy = isRunning = false;
 
 	xmlRpcClient = new Client(glb::host, glb::port);
-	xmlRpcClient->init();
+    xmlRpcClient->init();
 }
 
 void Server::init() {
@@ -91,7 +91,7 @@ void Server::broadcastIamHost(){
 			std::cout << std::endl << "broadcasting host to " << node.toString().toStdString() << std::endl;
 			Client* tmpClient = new Client();
 			tmpClient->setHostAndPort(node.toString());
-			tmpClient->execute("hostBroadcast", params);
+            tmpClient->execute("Node.hostBroadcast", params);
 		}
 	}
 }
@@ -144,7 +144,7 @@ bool Server::concatLoop(){
 
 		Client* tmpClient = new Client;
 		tmpClient->setHostAndPort(xmlRpcClient->getHostAndPort());
-		tmpClient->execute("rpcLifeSign", params);
+        tmpClient->execute("Node.rpcLifeSign", params);
 		while (tmpClient->isWaiting())
             QCoreApplication::processEvents();
 
@@ -203,6 +203,7 @@ QVariant Server::checkConcatResult(){
 
 bool Server::checkElapsedTime(){
 	double elapsed = (double)(clock() - startTime) / (double)CLOCKS_PER_SEC;
+    //std::cout << std::endl << "elapsed seconds: " << elapsed;
 	bool timeOver = elapsed > 6;
 	if (timeOver)
 		isRunning = false;
