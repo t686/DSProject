@@ -7,9 +7,7 @@ import org.apache.xmlrpc.server.XmlRpcServerConfigImpl;
 import org.apache.xmlrpc.webserver.WebServer;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
@@ -266,7 +264,6 @@ public class Server{
 			}
 			return "wait";
 		}
-		//TODO catch every possible scenario
 	}
 
 	/**
