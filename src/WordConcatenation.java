@@ -49,7 +49,7 @@ public class WordConcatenation {
 
                 params.removeAllElements();
                 params.add(hostString);
-                System.out.println("[WordConcat] Sending new string to host");
+                //System.out.println("[WordConcat] Sending new string to host");
                 boolean response = (boolean) this.xmlRpcClient.execute("Node.rpcOverrideString", params);
                 return response;
             } catch (XmlRpcException e) {

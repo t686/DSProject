@@ -23,7 +23,7 @@ public class RicartAgrawalaClient extends Client {
 	private Vector<Object> params = new Vector<Object>();
 	
 	Clock clockTS = RicartAgrawalaServer.clockTS;
-	WordConcatenation wordConcat = new WordConcatenation();
+	WordConcatenation concatObject = new WordConcatenation();
 
 	public static ReentrantLock lock = new ReentrantLock(true);
 	public static Condition reqBroadcaster = lock.newCondition();
@@ -31,7 +31,6 @@ public class RicartAgrawalaClient extends Client {
 	
 	ExecutorService executor = Executors.newCachedThreadPool();
 	Vector<RARequest> requestSenders = new Vector<RARequest>();
-	LinkedList<Future<Boolean>> permits = new LinkedList<Future<Boolean>>();
 
 
 	public RicartAgrawalaClient() {
@@ -45,7 +44,7 @@ public class RicartAgrawalaClient extends Client {
 	}
 	
 	public void accessingCriticalSection(){
-		System.out.println("Accessing the Critical Section on node :"+nodeIPnPort);
+		System.out.println("Accessing the CS");
 		lock.lock();
 		try{
 			clockTS.clockTick();
@@ -56,12 +55,10 @@ public class RicartAgrawalaClient extends Client {
 		}
 
 		//Sending requests and waiting for responses
-		//System.out.println("RequestSenders size: "+requestSenders.size());
-		//for (RARequest x : requestSenders) {
-		//    permits.add(executor.submit(x));
-		//}
-		
-		permits.clear();
+		for(URL url : serverURLs){
+			new Thread(new runConcatBroadcast(url)).start();
+		}
+
 		lock.lock();
 		try {
 			state = State.FREE;
@@ -71,7 +68,7 @@ public class RicartAgrawalaClient extends Client {
 	}
 
 	public void releaseCriticalSection(){
-		System.out.println("Releasing the Critical Section on node :"+nodeIPnPort);
+		System.out.println("Releasing the CS");
 		lock.lock();
 		try{
 			state = State.FREE;
@@ -84,12 +81,10 @@ public class RicartAgrawalaClient extends Client {
 	@Override
 	public void startConcatProcess(){
 		if(serverURLs.size() > 1){
-			
 			System.out.println("[RA Client] Concatenation process started.");
 				
 			startTime = System.currentTimeMillis();
-			
-			while(EXECUTION_TIME > System.currentTimeMillis() - startTime){
+			while(System.currentTimeMillis() - startTime < EXECUTION_TIME){
 
 				int randPeriod = (int) (Math.random() * (maxWaitRange - minWaitRange)) + minWaitRange;
 				try {
@@ -98,11 +93,13 @@ public class RicartAgrawalaClient extends Client {
 					e.printStackTrace();
 				}
 				accessingCriticalSection();
-				for(URL url : serverURLs){
-					new Thread(new runConcatBroadcast(url)).start();
-				}
-				//Additionally trigger the WordConcat method
+				concatObject.concatString();
 				releaseCriticalSection();
+			}
+			try {
+				concatObject.checkAddedWords();
+			} catch (XmlRpcException e) {
+				e.printStackTrace();
 			}
 			System.out.println("[RA Client] Concatenation process finished.");
 		} else {
@@ -115,7 +112,7 @@ public class RicartAgrawalaClient extends Client {
 	}
 	
 	public void updateTimeStamp(int newTS){
-		this.timeStamp = newTS;
+		RicartAgrawalaClient.timeStamp = newTS;
 	}
 	
 	/**
