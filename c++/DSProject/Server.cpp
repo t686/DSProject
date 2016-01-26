@@ -46,25 +46,14 @@ QVariant Server::join(const QVariant &newNodeIPVar){
 }
 
 QVariant Server::signOff(const QVariant &nodeIPVar){
-	QString nodeIP = nodeIPVar.toString();
-    for (size_t n = 0; n < glb::connectedNodes.size(); n++){
-        if (glb::connectedNodes[n] == nodeIP){
-			std::cout << std::endl << "[Server] Node " << nodeIP.toStdString() << " is leaving the network." << std::endl;
+    QString nodeIP = nodeIPVar.toString();
+    std::cout << std::endl << "[Server] Node " << nodeIP.toStdString() << " is leaving the network." << std::endl;
+    if(glb::connectedNodes.removeAll(nodeIPVar) == 0 || Client::serverURLs.removeAll(nodeIP) == 0)
+        return QVariant::fromValue(false);
 
-            glb::connectedNodes.erase(glb::connectedNodes.begin() + n);
-
-			for (int i = 0; i < Client::serverURLs.size(); i++){
-				QString url = Client::serverURLs[i];
-				if (url == nodeIP){
-					Client::serverURLs.erase(Client::serverURLs.begin() + i);
-				}
-			}
-            if (glb::host == nodeIP.left(nodeIP.indexOf(":")))
-				startElection();
-			return QVariant::fromValue(true);
-		}
-	}
-	return QVariant::fromValue(false);
+    if ((glb::host+QString(":%1").arg(glb::port)) == nodeIP)
+        startElection();
+    return QVariant::fromValue(true);
 }
 
 QVariant Server::startElection(){
@@ -167,7 +156,8 @@ bool Server::concatLoop(){
 QVariant Server::rpcLifeSign(const QVariant &requesterVar){
 	QString requester = requesterVar.toString();
 	if (!isRunning){
-		startTime = clock();
+        std::cout << std::endl << "starting the clock..." << std::endl;
+        startTime = time(0);
 		isRunning = true;
 	}
 	if (checkElapsedTime()) {
@@ -202,9 +192,9 @@ QVariant Server::checkConcatResult(){
 }
 
 bool Server::checkElapsedTime(){
-	double elapsed = (double)(clock() - startTime) / (double)CLOCKS_PER_SEC;
-    //std::cout << std::endl << "elapsed seconds: " << elapsed;
-	bool timeOver = elapsed > 6;
+    double elapsed = difftime (time(0), startTime);
+    std::cout << std::endl << "elapsed seconds: " << elapsed;
+    bool timeOver = elapsed > 5.0;
 	if (timeOver)
 		isRunning = false;
 	return timeOver;

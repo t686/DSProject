@@ -47,7 +47,7 @@ protected:
 	QStringList requestQueue;
 	bool critSectionBusy;
 	bool isRunning;
-	clock_t startTime;
+    time_t startTime;
     int stoppedRequester;
 
 	void broadcastIamHost();

@@ -6,14 +6,14 @@ QStringList Client::serverURLs = QStringList();
 
 Client::Client() : XmlRpcClient("127.0.0.1",0){
     url.setPath("/xmlrpc");
-    requestTimeout = 100000;
-    connectTimeout = 1200000;
+    requestTimeout = 1000000;
+    connectTimeout = 12000000;
 }
 
 Client::Client(QString host, int port) : XmlRpcClient(host, port){
     url.setPath("/xmlrpc");
-    requestTimeout = 100000;
-    connectTimeout = 1200000;
+    requestTimeout = 1000000;
+    connectTimeout = 12000000;
 }
 
 void Client::init(){
@@ -52,8 +52,10 @@ void Client::join(QString newNodeIP){
         QStringList result = response().toStringList();
         if (result.size() > 0){
             foreach(QString str,result){
-                if (str != nodeIPnPort && !glb::connectedNodes.contains(str)){
+                if (!glb::connectedNodes.contains(str)){
                     glb::connectedNodes.append(str);
+                }
+                if(!serverURLs.contains(str)){
                     serverURLs.push_back(str);
                 }
             }
@@ -98,6 +100,7 @@ void Client::signOff(){
 		glb::connectedNodes.clear();
 		glb::connectedNodes.append(nodeIPnPort);
 		glb::host = "none";
+        glb::port = 0;
 		//TODO cleanup
 		std::cout << std::endl << "[Client] Signed off!" << std::endl;
 	}
@@ -115,7 +118,10 @@ void Client::startElection(){
         setHostAndPort(nodeIPnPort);
 		params.clear();
         std::cout << std::endl << "starting election on: " << nodeIPnPort.toStdString() << std::endl;
-        execute("Node.startElection", params);
+
+        Client* tmpClient = new Client();
+        tmpClient->setHostAndPort(nodeIPnPort);
+        tmpClient->execute("Node.startElection", params);
 	}
 	emit finishedTask();
 }
@@ -155,9 +161,11 @@ void Client::runOverRpc(QString functionName, QList<QVariant> in_params){
 }
 
 void Client::showAllLists(){
+    std::cout << std::endl << "______";
 	glb::listOfConnections();
 	std::cout << std::endl << "______";
 	listOfNodes();
+    std::cout << std::endl;
 	emit finishedTask();
 }
 
