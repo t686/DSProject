@@ -11,7 +11,7 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 
 public class Client {
 	
-	public final long EXECUTION_TIME = 10000; //Loop Execution time 
+	public final long EXECUTION_TIME = 20000; //Loop Execution time 
 	
 	public static XmlRpcClient xmlRpcClient;
 	public static XmlRpcClientConfigImpl config;

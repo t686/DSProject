@@ -1,7 +1,5 @@
 import java.net.URL;
 import java.util.Vector;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -18,18 +16,12 @@ public class RicartAgrawalaClient extends Client {
 	private long startTime;
 	public static int timeStamp;
 	public static int nodeID;
-	private Vector<Object> params = new Vector<Object>();
-	
 	
 	Clock clockTS = RicartAgrawalaServer.clockTS;
 	WordConcatenation concatObject = new WordConcatenation();
 
 	public static ReentrantLock lock = new ReentrantLock(true);
 	public static Condition reqBroadcaster = lock.newCondition();
-	
-
-	
-	ExecutorService executor = Executors.newCachedThreadPool();
 
 	public RicartAgrawalaClient() {
 		System.out.println("[RA Client] Initializing ...");
@@ -52,7 +44,6 @@ public class RicartAgrawalaClient extends Client {
 			lock.unlock();
 		}
 
-		//Sending requests and waiting for responses
 		for(URL url : serverURLs){
 			new Thread(new runConcatBroadcast(url)).start();
 		}
@@ -87,6 +78,7 @@ public class RicartAgrawalaClient extends Client {
 				concatObject.concatString();
 				releaseCriticalSection();
 			}
+			
 			try {
 				concatObject.checkAddedWords();
 			} catch (XmlRpcException e) {
@@ -96,10 +88,6 @@ public class RicartAgrawalaClient extends Client {
 		} else {
 			System.err.println("[RA Client] You are not connected to a network");
 		}	
-	}
-	
-	public static int getTimeStampID(){
-		return timeStamp*10+nodeID;
 	}
 	
 	public void updateTimeStamp(int newTS){
